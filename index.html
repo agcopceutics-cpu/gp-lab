@@ -1924,6 +1924,9 @@
       mainSec.classList.toggle("lg:col-span-9", !wide);
       if (tabKey === "syllabus") renderSyllabus();
       if (tabKey === "categories") renderCategories();
+      window.scrollTo({ top: 0, behavior: "auto" });
+      document.documentElement.scrollTop = 0;
+      document.body.scrollTop = 0;
       if (tabKey === "report") {
         renderPrintableReport();
       }
