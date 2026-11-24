@@ -43,6 +43,7 @@
       }
     }
 
+
     /* Custom Scrollbar */
     ::-webkit-scrollbar {
       width: 7px;
@@ -94,7 +95,6 @@
   </style>
 </head>
 <body class="min-h-screen flex flex-col relative">
-
   <!-- Subtle Floating Pharmacy Emojis Layer -->
   <div id="emojiLayer" class="floating-emoji-layer" aria-hidden="true">
     <span class="floating-emoji" style="top: 12%; left: 1.5%; animation-delay: 0s;">🧪</span>
@@ -164,6 +164,7 @@
 
         <!-- Right Controls -->
         <div class="flex flex-wrap items-center justify-center gap-2 no-print">
+          <label class="text-xs font-bold text-slate-700 flex items-center gap-1">🎓 Academic Year <select id="ayPicker" onchange="onAYChange(this.value)" class="px-2 py-1.5 text-xs border border-slate-300 rounded-xl bg-white"></select></label>
           <button onclick="switchTab('report')" class="px-3.5 py-2 text-xs font-semibold rounded-xl bg-blue-900 hover:bg-blue-800 text-white shadow-sm transition flex items-center gap-1.5">
             <span>📄</span> Official CO–PO & Assessment Report
           </button>
@@ -189,14 +190,20 @@
         <button onclick="switchTab('assessment')" id="tab-assessment" class="nav-tab px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap bg-slate-100 text-slate-700 hover:bg-slate-200 transition">
           📝 Assessment
         </button>
-        <button onclick="switchTab('copo')" id="tab-copo" class="nav-tab px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap bg-slate-100 text-slate-700 hover:bg-slate-200 transition">
-          🎯 CO–PO Attainment
-        </button>
         <button onclick="switchTab('feedback')" id="tab-feedback" class="nav-tab px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap bg-slate-100 text-slate-700 hover:bg-slate-200 transition">
           💬 Feedback &amp; NEP Log
         </button>
+        <button onclick="switchTab('copo')" id="tab-copo" class="nav-tab px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap bg-slate-100 text-slate-700 hover:bg-slate-200 transition">
+          🎯 CO–PO Attainment
+        </button>
         <button onclick="switchTab('report')" id="tab-report" class="nav-tab px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap bg-slate-100 text-slate-700 hover:bg-slate-200 transition">
           📊 Report &amp; Ledger
+        </button>
+        <button onclick="switchTab('progress')" id="tab-progress" class="nav-tab px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap bg-slate-100 text-slate-700 hover:bg-slate-200 transition">
+          📈 Cumulative Report
+        </button>
+        <button onclick="switchTab('compliance')" id="tab-compliance" class="nav-tab px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap bg-slate-100 text-slate-700 hover:bg-slate-200 transition">
+          🏛️ Compliance &amp; Records
         </button>
         <button onclick="switchTab('manualManager')" id="tab-manualManager" class="nav-tab px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap bg-slate-100 text-slate-700 hover:bg-slate-200 transition">
           📚 Manual Manager
@@ -322,13 +329,13 @@
 
               <div class="pt-4 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-4">
                 <p class="text-xs text-slate-500">
-                  Ensure your <strong>Name</strong> and <strong>Roll Number</strong> are entered in the top bar before submitting.
+                  Ensure your <strong>Name</strong> and <strong>Roll Number</strong> are entered in the <strong>Student Details</strong> box at the top of this tab before submitting.
                 </p>
                 <div class="flex gap-3 w-full sm:w-auto">
                   <button type="button" onclick="resetQuiz()" class="flex-1 sm:flex-initial px-4 py-2.5 rounded-xl border border-slate-300 text-slate-700 text-xs font-bold hover:bg-slate-50 transition">
                     Reset Answers
                   </button>
-                  <button type="submit" class="flex-1 sm:flex-initial px-6 py-2.5 rounded-xl bg-blue-900 hover:bg-blue-800 text-white text-xs font-bold shadow-sm transition">
+                  <button type="submit" id="quizSubmitBtn" class="flex-1 sm:flex-initial px-6 py-2.5 rounded-xl bg-blue-900 hover:bg-blue-800 text-white text-xs font-bold shadow-sm transition">
                     Submit Assessment & Compute CO–PO
                   </button>
                 </div>
@@ -532,8 +539,15 @@
 
               <div class="flex justify-end">
                 <button type="submit" class="px-6 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold shadow-sm transition">
-                  Save Feedback & Attach to Official Report ✓
+                  Save Feedback & NEP Reflection ✓
                 </button>
+              </div>
+              <div id="fbSavedBanner" class="hidden p-4 rounded-2xl border-2 border-emerald-400 bg-emerald-50 text-sm font-semibold text-emerald-900 flex flex-col sm:flex-row items-center justify-between gap-3">
+                <span id="fbSavedText">✅ Feedback saved</span>
+                <span class="flex gap-2 shrink-0">
+                  <button type="button" onclick="switchTab('copo')" class="px-3 py-1.5 rounded-xl bg-blue-900 text-white text-xs font-bold">Next: CO–PO Attainment →</button>
+                  <button type="button" onclick="switchTab('report')" class="px-3 py-1.5 rounded-xl bg-emerald-700 text-white text-xs font-bold">View Report →</button>
+                </span>
               </div>
             </form>
           </div>
@@ -682,6 +696,10 @@
         </div>
 
         <!-- TAB 6: LAB MANUAL MANAGER (UPLOAD / ADD NEW EXPERIMENTS) -->
+        <div id="panel-compliance" class="tab-panel hidden space-y-6"><div id="complianceContent" class="space-y-4"></div></div>
+
+        <div id="panel-progress" class="tab-panel hidden space-y-6"><div id="progressContent" class="space-y-4"></div><div id="classProgress"></div></div>
+
         <div id="panel-manualManager" class="tab-panel hidden space-y-6">
           <div class="bg-white rounded-2xl border border-slate-200 shadow-xs p-6 space-y-6">
             <div>
@@ -1841,20 +1859,45 @@
         </div>
         <div class="text-center"><button onclick="switchTab('categories')" class="px-5 py-2.5 rounded-xl bg-red-700 hover:bg-red-800 text-white text-xs font-bold">Next: Categories &amp; Index →</button></div>`;
     }
+    let activeCatNo = 1;
     function renderCategories() {
       const el = document.getElementById("categoriesContent");
       if (!el) return;
       const exps = (typeof experiments !== "undefined" ? experiments : DEFAULT_EXPERIMENTS);
-      const list = n => exps.filter(e => e.cat === n).map(e => `<li><button onclick="openExperiment('${e.id}')" class="text-left hover:underline text-blue-900"><b>${e.number}</b> ${e.title}</button></li>`).join("");
       el.innerHTML = `
         <div id="catIndex" class="bg-white rounded-2xl border border-slate-200 shadow-xs p-5">
-          <h3 class="text-xl font-extrabold text-slate-900 mb-1">🗂️ Index of Categories &amp; Experiments</h3>
-          <p class="text-xs text-slate-500 mb-4">Click a category to read its overview, or click an experiment to open its practical.</p>
-          <div class="grid md:grid-cols-2 xl:grid-cols-4 gap-3">
-            ${CATEGORIES.map((c, i) => `<div class="rounded-xl border border-slate-200 bg-slate-50 p-3"><button onclick="document.getElementById('cat-${i + 1}').scrollIntoView({behavior:'smooth'})" class="text-left font-extrabold text-sm text-slate-900 hover:underline">${c.icon} ${i + 1}. ${c.name}</button><div class="text-[10px] font-bold text-blue-800 mb-1">${c.co}</div><ul class="space-y-1 text-xs">${list(i + 1)}</ul></div>`).join("")}
+          <h3 class="text-xl font-extrabold text-slate-900 mb-1">🗂️ Index of Categories</h3>
+          <p class="text-xs text-slate-500 mb-4">Click a category to read its overview; its experiments are listed right below the overview.</p>
+          <div class="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
+            ${CATEGORIES.map((c, i) => { const n = i + 1, on = n === activeCatNo; return `<button onclick="selectCategory(${n})" class="text-left rounded-xl border p-3 transition ${on ? "bg-blue-950 text-white border-blue-950 shadow-sm" : "bg-slate-50 border-slate-200 hover:bg-blue-50"}"><div class="text-2xl">${c.icon}</div><div class="font-extrabold text-sm leading-snug mt-1">${n}. ${c.name}</div><div class="text-[11px] mt-1 ${on ? "text-blue-200" : "text-slate-500"}">${c.co} • ${exps.filter(e => e.cat === n).length} experiment(s)</div></button>`; }).join("")}
           </div>
         </div>
-        ${CATEGORIES.map((c, i) => `<div id="cat-${i + 1}" class="scroll-mt-24">${catBriefHTML(c, i + 1, false).replace("<details class=", "<details open class=")}<div class="text-right mt-1"><button onclick="document.getElementById('catIndex').scrollIntoView({behavior:'smooth'})" class="text-[11px] font-semibold text-slate-500 hover:text-slate-800">↑ Back to index</button></div></div>`).join("")}`;
+        <div id="catDetail" class="space-y-4 scroll-mt-20"></div>`;
+      selectCategory(activeCatNo, false);
+    }
+    function selectCategory(n, scroll = true) {
+      activeCatNo = n;
+      const c = CATEGORIES[n - 1];
+      const exps = (typeof experiments !== "undefined" ? experiments : DEFAULT_EXPERIMENTS).filter(e => e.cat === n);
+      document.querySelectorAll("#catIndex button").forEach((b, i) => {
+        const on = i + 1 === n;
+        b.className = `text-left rounded-xl border p-3 transition ${on ? "bg-blue-950 text-white border-blue-950 shadow-sm" : "bg-slate-50 border-slate-200 hover:bg-blue-50"}`;
+        const sub = b.children[2]; if (sub) sub.className = `text-[11px] mt-1 ${on ? "text-blue-200" : "text-slate-500"}`;
+      });
+      const detail = document.getElementById("catDetail");
+      detail.innerHTML = `
+        ${catBriefHTML(c, n, false).replace("<details class=", "<details open class=")}
+        <div class="bg-white rounded-2xl border border-slate-200 shadow-xs p-5">
+          <h4 class="text-base font-extrabold text-slate-900 mb-3">🧫 Experiments in Category ${n}: ${c.name}</h4>
+          <div class="space-y-2">
+            ${exps.map(e => `<div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2 rounded-xl border border-slate-200 p-3"><div><div class="text-xs font-bold text-blue-900">Exp. ${e.number} • ${e.co}</div><div class="text-sm font-semibold text-slate-900">${e.title}</div><div class="text-xs text-slate-500 mt-0.5">${e.aim}</div></div><button onclick="openExperiment('${e.id}')" class="shrink-0 px-4 py-2 rounded-xl bg-red-700 hover:bg-red-800 text-white text-xs font-bold">Open practical →</button></div>`).join("")}
+          </div>
+          <div class="flex justify-between mt-4 text-xs font-bold">
+            ${n > 1 ? `<button onclick="selectCategory(${n - 1})" class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200">← ${CATEGORIES[n - 2].name}</button>` : "<span></span>"}
+            ${n < CATEGORIES.length ? `<button onclick="selectCategory(${n + 1})" class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200">${CATEGORIES[n].name} →</button>` : "<span></span>"}
+          </div>
+        </div>`;
+      if (scroll) detail.scrollIntoView({ behavior: "smooth", block: "start" });
     }
     function openExperiment(id) { selectExperiment(id); switchTab("practical"); window.scrollTo({ top: 0, behavior: "smooth" }); }
     window.addEventListener("load", () => { renderSyllabus(); renderCategories(); });
@@ -1864,7 +1907,23 @@
     let emojisVisible = true;
     let currentAttemptResult = null;
     let currentFeedbackData = null;
-    let savedRecords = JSON.parse(localStorage.getItem("agcop_records_v1")) || [];
+    const SETTINGS_KEY = "agcop_settings_v1";
+    function deriveAY(dateStr) { const d = dateStr ? new Date(dateStr) : new Date(); const y = d.getFullYear(), s0 = d.getMonth() >= 5 ? y : y - 1; return `${s0}-${String(s0 + 1).slice(2)}`; }
+    const DEFAULT_SETTINGS = { college: "Arvind Gavali College of Pharmacy, Satara", dept: "Department of Pharmaceutics", programme: "B.Pharm", yearSem: "F.Y. B.Pharm", course: "General Pharmacy — Practical", courseCode: "", faculty: "", hod: "", principal: "", ay: deriveAY(), target: 60, l3: 70, l2: 60, l1: 50 };
+    let settings = Object.assign({}, DEFAULT_SETTINGS, (() => { try { return JSON.parse(localStorage.getItem(SETTINGS_KEY)) || {}; } catch (e) { return {}; } })());
+    const recKey = ay => "agcop_records_ay_" + ay;
+    (function migrateLegacy() {
+      try {
+        const old = JSON.parse(localStorage.getItem("agcop_records_v1"));
+        if (old && old.length) {
+          const g = {}; old.forEach(r => { const ay = deriveAY(r.date); (g[ay] = g[ay] || []).push(r); });
+          Object.entries(g).forEach(([ay, arr]) => { if (!localStorage.getItem(recKey(ay))) localStorage.setItem(recKey(ay), JSON.stringify(arr)); });
+        }
+        localStorage.removeItem("agcop_records_v1");
+      } catch (e) {}
+    })();
+    const loadAY = ay => { try { return JSON.parse(localStorage.getItem(recKey(ay))) || []; } catch (e) { return []; } };
+    let savedRecords = loadAY(settings.ay);
 
     window.addEventListener("DOMContentLoaded", () => {
       // Set today's date
@@ -1912,7 +1971,7 @@
       activeBtn.classList.remove("bg-slate-100", "text-slate-700");
       activeBtn.classList.add("bg-red-700", "text-white", "shadow-xs");
 
-      const wide = ["syllabus", "categories"].includes(tabKey);
+      const wide = ["syllabus", "categories", "progress", "compliance"].includes(tabKey);
       document.getElementById("expSidebar").classList.toggle("hidden", wide);
       document.getElementById("activeBanner").classList.toggle("hidden", wide);
       const mainSec = document.getElementById("mainSection");
@@ -1920,6 +1979,9 @@
       mainSec.classList.toggle("lg:col-span-9", !wide);
       if (tabKey === "syllabus") renderSyllabus();
       if (tabKey === "categories") renderCategories();
+      window.__tab = tabKey;
+      if (tabKey === "progress") renderProgress();
+      if (tabKey === "compliance") renderCompliance();
       window.scrollTo({ top: 0, behavior: "auto" });
       document.documentElement.scrollTop = 0;
       document.body.scrollTop = 0;
@@ -1992,7 +2054,14 @@
     }
 
     function selectExperiment(expId) {
+      const expChanged = activeExpId !== expId;
       activeExpId = expId;
+      if (expChanged) {
+        const kl = document.getElementById("kolbLearned"), ks = document.getElementById("kolbSuggestion");
+        if (kl) { kl.value = ""; }
+        if (ks) { ks.value = ""; }
+        updateWordCount();
+      }
       const exp = experiments.find(e => e.id === expId);
       if (!exp) return;
 
@@ -2012,6 +2081,7 @@
           <button onclick="switchTab('assessment')" class="shrink-0 px-5 py-2.5 rounded-xl bg-red-700 hover:bg-red-800 text-white text-xs font-bold shadow-xs transition">Take Quiz Now →</button>
         </div>`);
       renderQuizQuestions(exp);
+      clearQuizSubmittedState();
       document.getElementById("quizResultBanner").classList.add("hidden");
     }
 
@@ -2182,8 +2252,21 @@
       `).join("");
     }
 
+    const QUIZ_BTN_CLASS = "flex-1 sm:flex-initial px-6 py-2.5 rounded-xl bg-blue-900 hover:bg-blue-800 text-white text-xs font-bold shadow-sm transition";
+    function esc(t) { return String(t == null ? "" : t).replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;"); }
+    function clearQuizSubmittedState() {
+      document.querySelectorAll("#quizForm input[type=radio]").forEach(r => { r.disabled = false; });
+      document.querySelectorAll("#quizForm .opt-mark").forEach(m => m.remove());
+      document.querySelectorAll("#quizQuestionsContainer label").forEach(l => {
+        l.classList.remove("bg-emerald-100", "border-emerald-500", "bg-red-100", "border-red-400");
+        l.classList.add("bg-white", "border-slate-200");
+      });
+      const b = document.getElementById("quizSubmitBtn");
+      if (b) { b.disabled = false; b.className = QUIZ_BTN_CLASS; b.textContent = "Submit Assessment & Compute CO–PO"; }
+    }
     function resetQuiz() {
       document.getElementById("quizForm").reset();
+      clearQuizSubmittedState();
       document.getElementById("quizResultBanner").classList.add("hidden");
       document.querySelectorAll("[id^='qexp-']").forEach(el => el.classList.add("hidden"));
       showToast("Quiz answers cleared.", "🔄");
@@ -2202,7 +2285,7 @@
       const studentRoll = document.getElementById("studentRoll").value.trim();
 
       if (!studentName || !studentRoll) {
-        showToast("Please enter Student Full Name and Roll Number in the top bar first!", "⚠️");
+        showToast("Please enter Student Full Name and Roll Number in the Student Details box first!", "⚠️");
         document.getElementById("studentName").focus();
         return;
       }
@@ -2236,6 +2319,18 @@
           expBox.classList.add("bg-red-50", "text-red-950", "border", "border-red-200");
           expBox.innerHTML = `<strong>✗ Incorrect.</strong> Correct answer: <em>${item.options[item.ans]}</em>. ${item.explanation}`;
         }
+        document.querySelectorAll(`#qcard-${idx} label`).forEach((lab, oi) => {
+          lab.classList.remove("bg-white", "border-slate-200");
+          if (oi === item.ans) {
+            lab.classList.add("bg-emerald-100", "border-emerald-500");
+            lab.insertAdjacentHTML("beforeend", '<span class="opt-mark ml-auto font-bold text-emerald-700">✓</span>');
+          } else if (oi === chosenIdx) {
+            lab.classList.add("bg-red-100", "border-red-400");
+            lab.insertAdjacentHTML("beforeend", '<span class="opt-mark ml-auto font-bold text-red-700">✗</span>');
+          } else {
+            lab.classList.add("bg-white", "border-slate-200");
+          }
+        });
       });
 
       const pct = Math.round((score / total) * 100);
@@ -2256,33 +2351,41 @@
         attainmentLevel: attainment.level,
         attainmentLabel: attainment.label,
         questionBreakdown,
-        feedback: currentFeedbackData || null
+        feedback: getCurrentFeedback()
       };
 
       // Save or update record in localStorage
       saveOrUpdateRecord(currentAttemptResult);
 
       // Display Result Banner
+      document.querySelectorAll("#quizForm input[type=radio]").forEach(r => { r.disabled = true; });
+      const subBtn = document.getElementById("quizSubmitBtn");
+      subBtn.disabled = true;
+      subBtn.className = "flex-1 sm:flex-initial px-6 py-2.5 rounded-xl bg-emerald-600 text-white text-xs font-bold shadow-sm cursor-default";
+      subBtn.textContent = `✓ Submitted — ${score}/${total} (${pct}%)`;
+
       const banner = document.getElementById("quizResultBanner");
-      banner.classList.remove("hidden");
+      banner.className = "mt-6 p-5 rounded-2xl border-2 border-emerald-400 bg-emerald-50 space-y-4";
       banner.innerHTML = `
+        <div class="text-sm font-extrabold text-emerald-800">✅ Assessment submitted successfully — answers locked. Green = correct answer, red = your wrong choice.</div>
         <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
           <div>
-            <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Assessment Evaluated for ${studentName} (${studentRoll})</span>
+            <span class="text-xs font-bold uppercase tracking-wider text-slate-500">Assessment Evaluated for ${esc(studentName)} (${esc(studentRoll)})</span>
             <h4 class="text-xl font-extrabold text-slate-900 mt-0.5">Score: ${score} / ${total} (${pct}%)</h4>
             <p class="text-xs text-slate-600 mt-1">Course Outcome <strong>${exp.co}</strong> Attainment Computed & Mapped to PCI Program Outcomes (PO1–PO11).</p>
           </div>
           <div class="flex flex-col items-start sm:items-end gap-2">
             <span class="px-3 py-1 rounded-full text-xs font-extrabold border ${attainment.badgeClass}">${attainment.label}</span>
             <div class="flex gap-2">
+              <button type="button" onclick="switchTab('feedback')" class="px-3 py-1.5 rounded-xl bg-emerald-700 text-white text-xs font-bold">Next: Feedback & NEP Log →</button>
               <button type="button" onclick="switchTab('copo')" class="px-3 py-1.5 rounded-xl bg-blue-900 text-white text-xs font-bold">View CO–PO Matrix</button>
-              <button type="button" onclick="switchTab('feedback')" class="px-3 py-1.5 rounded-xl bg-emerald-700 text-white text-xs font-bold">Add Feedback →</button>
             </div>
           </div>
         </div>
       `;
 
       renderCoPoMatrix();
+      banner.scrollIntoView({ behavior: "smooth", block: "center" });
       showToast(`Assessment saved! Score: ${pct}% (${attainment.label})`, "🎉");
     }
 
@@ -2290,21 +2393,15 @@
     // 7. DYNAMIC CO-PO MATRIX & WEIGHTED PO ATTAINMENT COMPUTATION
     // =========================================================================
     function getStudentCOAttainments() {
-      // Aggregate best/latest score per CO from saved records for current roll number, or current attempt
+      // Best score per CO for the student whose roll number is entered (quiz-based records only)
       const roll = document.getElementById("studentRoll").value.trim().toLowerCase();
       const coScores = { CO1: null, CO2: null, CO3: null, CO4: null, CO5: null };
-
+      if (!roll) return coScores;
       savedRecords.forEach(rec => {
-        if (!roll || rec.studentRoll.toLowerCase() === roll) {
-          if (coScores[rec.co] === null || rec.pct > coScores[rec.co]) {
-            coScores[rec.co] = rec.pct;
-          }
+        if (rec.studentRoll.toLowerCase() === roll && rec.questionBreakdown && rec.questionBreakdown.length > 0) {
+          if (coScores[rec.co] === null || rec.pct > coScores[rec.co]) coScores[rec.co] = rec.pct;
         }
       });
-
-      if (currentAttemptResult) {
-        coScores[currentAttemptResult.co] = currentAttemptResult.pct;
-      }
       return coScores;
     }
 
@@ -2375,80 +2472,89 @@
       const n = countWords(document.getElementById("kolbLearned").value);
       const el = document.getElementById("kolbWordCount");
       const ok = n >= MIN_REFLECTION_WORDS;
+      const sb = document.getElementById("fbSavedBanner"); if (sb) sb.classList.add("hidden");
       el.textContent = ok ? `${n} words ✓ requirement met` : `${n} / ${MIN_REFLECTION_WORDS} words minimum — the report cannot be submitted until this is met.`;
       el.className = "text-[11px] mt-1 font-semibold " + (ok ? "text-emerald-700" : "text-red-600");
     }
+    function getCurrentAttempt() {
+      const roll = document.getElementById("studentRoll").value.trim().toLowerCase();
+      if (!roll) return null;
+      if (currentAttemptResult && currentAttemptResult.expId === activeExpId && currentAttemptResult.studentRoll.toLowerCase() === roll) return currentAttemptResult;
+      return savedRecords.find(r => r.expId === activeExpId && r.studentRoll.toLowerCase() === roll) || null;
+    }
+    function getCurrentFeedback() {
+      const att = getCurrentAttempt();
+      if (att && att.feedback) return att.feedback;
+      const roll = document.getElementById("studentRoll").value.trim().toLowerCase();
+      if (roll && currentFeedbackData && currentFeedbackData.expId === activeExpId && String(currentFeedbackData.studentRoll || "").toLowerCase() === roll) return currentFeedbackData;
+      return null;
+    }
     function printReportGuarded() {
-      const fb = (currentAttemptResult && currentAttemptResult.feedback) || currentFeedbackData;
+      let fb = getCurrentFeedback();
       if (!fb || countWords(fb.kolbLearned) < MIN_REFLECTION_WORDS) {
-        showToast("Complete the NEP Experiential Learning reflection (minimum 25 words) before submitting/printing the report.", "⚠️");
-        switchTab("feedback");
-        return;
+        const typed = countWords(document.getElementById("kolbLearned").value);
+        if (typed >= MIN_REFLECTION_WORDS) {
+          // reflection is written but was never saved: save it now, then print
+          if (!submitFeedback(null, "report")) return;
+        } else {
+          showToast(`NEP reflection needs at least ${MIN_REFLECTION_WORDS} words for this practical (currently ${typed}). Please complete it and save.`, "⚠️");
+          switchTab("feedback");
+          return;
+        }
       }
       window.print();
     }
-    function submitFeedback(e) {
-      e.preventDefault();
+    function submitFeedback(e, nextTab) {
+      if (e && e.preventDefault) e.preventDefault();
       const studentName = document.getElementById("studentName").value.trim();
       const studentRoll = document.getElementById("studentRoll").value.trim();
-
       if (!studentName || !studentRoll) {
         showToast("Please enter Student Name and Roll Number in the Assessment tab first!", "⚠️");
         switchTab("assessment");
-        return;
+        return false;
       }
-
       const kolbWords = countWords(document.getElementById("kolbLearned").value);
       if (kolbWords < MIN_REFLECTION_WORDS) {
-        showToast(`NEP reflection needs at least ${MIN_REFLECTION_WORDS} words (you have ${kolbWords}). Report not submitted.`, "⚠️");
+        showToast(`NEP reflection needs at least ${MIN_REFLECTION_WORDS} words (you have ${kolbWords}). Feedback not saved.`, "⚠️");
         document.getElementById("kolbLearned").focus();
-        return;
+        return false;
       }
-
       const clarity = parseInt(document.getElementById("fbClarity").value, 10);
       const formulation = parseInt(document.getElementById("fbFormulation").value, 10);
       const confidence = parseInt(document.getElementById("fbConfidence").value, 10);
       const assessment = parseInt(document.getElementById("fbAssessment").value, 10);
       const avgRating = ((clarity + formulation + confidence + assessment) / 4).toFixed(2);
+      const exp = experiments.find(ex => ex.id === activeExpId);
 
       currentFeedbackData = {
-        clarity,
-        formulation,
-        confidence,
-        assessment,
-        avgRating,
+        clarity, formulation, confidence, assessment, avgRating,
         kolbLearned: document.getElementById("kolbLearned").value.trim(),
-        kolbSuggestion: document.getElementById("kolbSuggestion").value.trim() || "None"
+        kolbSuggestion: document.getElementById("kolbSuggestion").value.trim() || "None",
+        studentRoll, expId: exp.id
       };
 
-      if (currentAttemptResult && currentAttemptResult.studentRoll === studentRoll) {
-        currentAttemptResult.feedback = currentFeedbackData;
-        saveOrUpdateRecord(currentAttemptResult);
+      let rec = savedRecords.find(r => r.studentRoll.toLowerCase() === studentRoll.toLowerCase() && r.expId === exp.id);
+      if (!rec && currentAttemptResult && currentAttemptResult.expId === exp.id && currentAttemptResult.studentRoll.toLowerCase() === studentRoll.toLowerCase()) rec = currentAttemptResult;
+      if (rec) {
+        rec.feedback = currentFeedbackData;
       } else {
-        const exp = experiments.find(ex => ex.id === activeExpId);
-        const feedbackOnlyRecord = {
-          id: Date.now(),
-          date: document.getElementById("sessionDate").value,
-          studentName,
-          studentRoll,
-          batch: document.getElementById("studentBatch").value,
-          expId: exp.id,
-          expTitle: exp.title,
-          co: exp.co,
-          score: 0,
-          total: exp.quiz.length,
-          pct: 0,
-          attainmentLevel: 0,
-          attainmentLabel: "Feedback Recorded",
-          questionBreakdown: [],
-          feedback: currentFeedbackData
+        rec = {
+          id: Date.now(), date: document.getElementById("sessionDate").value, studentName, studentRoll,
+          batch: document.getElementById("studentBatch").value, expId: exp.id, expTitle: exp.title, co: exp.co,
+          score: 0, total: exp.quiz.length, pct: 0, attainmentLevel: 0, attainmentLabel: "Feedback Recorded",
+          questionBreakdown: [], feedback: currentFeedbackData
         };
-        currentAttemptResult = feedbackOnlyRecord;
-        saveOrUpdateRecord(feedbackOnlyRecord);
       }
+      currentAttemptResult = rec;
+      saveOrUpdateRecord(rec);
 
-      showToast(`Feedback (${avgRating}/5.0) & Kolb Log attached to official report!`, "✅");
-      switchTab("report");
+      const ban = document.getElementById("fbSavedBanner");
+      const sm = studentSummary(studentRoll.toLowerCase());
+      document.getElementById("fbSavedText").textContent = `✅ Saved (${kolbWords} words, satisfaction ${avgRating}/5) for ${exp.title}. Progress: ${sm.done}/${sm.total} practicals completed.`;
+      ban.classList.remove("hidden");
+      showToast(`Feedback (${avgRating}/5.0) & NEP reflection saved!`, "✅");
+      if (nextTab) switchTab(nextTab); else ban.scrollIntoView({ behavior: "smooth", block: "center" });
+      return true;
     }
 
     // =========================================================================
@@ -2467,32 +2573,33 @@
       } else {
         savedRecords.unshift(record);
       }
-      localStorage.setItem("agcop_records_v1", JSON.stringify(savedRecords));
+      localStorage.setItem(recKey(settings.ay), JSON.stringify(savedRecords));
       renderSavedLedger();
     }
 
     function renderPrintableReport() {
       syncStudentProfile();
+      const att = getCurrentAttempt();
       const exp = experiments.find(e => e.id === activeExpId);
       const perfSection = document.getElementById("reportPerformanceSection");
       const fbSection = document.getElementById("reportFeedbackSection");
 
-      if (currentAttemptResult) {
+      if (att) {
         perfSection.innerHTML = `
           <div class="border border-slate-300 rounded-xl p-4 space-y-3">
             <div class="flex flex-wrap items-center justify-between gap-2 border-b border-slate-200 pb-2">
               <div>
                 <span class="text-[11px] font-bold uppercase text-slate-500">Practical Performed</span>
-                <h3 class="text-sm font-extrabold text-slate-900">${currentAttemptResult.expTitle}</h3>
+                <h3 class="text-sm font-extrabold text-slate-900">${att.expTitle}</h3>
               </div>
               <div class="text-right">
                 <span class="px-2.5 py-1 rounded-lg bg-blue-50 text-blue-950 border border-blue-200 text-xs font-extrabold">
-                  Outcome: ${currentAttemptResult.co} | Score: ${currentAttemptResult.score}/${currentAttemptResult.total} (${currentAttemptResult.pct}%) — ${currentAttemptResult.attainmentLabel}
+                  Outcome: ${att.co} | Score: ${att.score}/${att.total} (${att.pct}%) — ${att.attainmentLabel}
                 </span>
               </div>
             </div>
 
-            ${currentAttemptResult.questionBreakdown && currentAttemptResult.questionBreakdown.length > 0 ? `
+            ${att.questionBreakdown && att.questionBreakdown.length > 0 ? `
               <div>
                 <h4 class="text-xs font-bold text-slate-800 mb-1.5">Question-by-Question Assessment Performance:</h4>
                 <table class="w-full text-left border border-slate-200 text-[11px]">
@@ -2505,7 +2612,7 @@
                     </tr>
                   </thead>
                   <tbody class="divide-y divide-slate-200">
-                    ${currentAttemptResult.questionBreakdown.map((qb, i) => `
+                    ${att.questionBreakdown.map((qb, i) => `
                       <tr>
                         <td class="p-2 font-bold">${i + 1}</td>
                         <td class="p-2">${qb.q}</td>
@@ -2540,7 +2647,7 @@
       `).join("");
 
       // Populate Feedback & Kolb Log
-      const fb = (currentAttemptResult && currentAttemptResult.feedback) || currentFeedbackData;
+      const fb = getCurrentFeedback();
       if (fb) {
         fbSection.innerHTML = `
           <div class="flex items-center justify-between border-b border-slate-200 pb-1.5">
@@ -2553,8 +2660,8 @@
             <div>Lab Confidence: <strong>${fb.confidence}/5</strong></div>
             <div>Assessment Quality: <strong>${fb.assessment}/5</strong></div>
           </div>
-          <p class="pt-1"><strong>NEP 2020 Kolb Reflection ("What I can now do/explain"):</strong> ${fb.kolbLearned}</p>
-          <p><strong>Student Remarks / Suggestions to Dr. K. M. Karande:</strong> ${fb.kolbSuggestion}</p>
+          <p class="pt-1"><strong>NEP 2020 Kolb Reflection ("What I can now do/explain"):</strong> ${esc(fb.kolbLearned)}</p>
+          <p><strong>Student Remarks / Suggestions to Dr. K. M. Karande:</strong> ${esc(fb.kolbSuggestion)}</p>
         `;
       } else {
         fbSection.innerHTML = `
@@ -2566,15 +2673,16 @@
 
     function renderSavedLedger() {
       const tbody = document.getElementById("savedLedgerBody");
-      if (savedRecords.length === 0) {
+      const vis = savedRecords.map((rec, idx) => ({ rec, idx })).filter(x => canSee(x.rec));
+      if (vis.length === 0) {
         tbody.innerHTML = `<tr><td colspan="9" class="p-4 text-center text-slate-400">No student assessments recorded yet.</td></tr>`;
         return;
       }
-      tbody.innerHTML = savedRecords.map((rec, idx) => `
+      tbody.innerHTML = vis.map(({ rec, idx }) => `
         <tr class="hover:bg-slate-50">
           <td class="p-2.5">${rec.date}</td>
-          <td class="p-2.5 font-bold text-slate-900">${rec.studentRoll}</td>
-          <td class="p-2.5">${rec.studentName}</td>
+          <td class="p-2.5 font-bold text-slate-900">${esc(rec.studentRoll)}</td>
+          <td class="p-2.5">${esc(rec.studentName)}</td>
           <td class="p-2.5 max-w-[200px] truncate" title="${rec.expTitle}">${rec.expTitle}</td>
           <td class="p-2.5 font-bold text-blue-900">${rec.co}</td>
           <td class="p-2.5 font-bold">${rec.score}/${rec.total} (${rec.pct}%)</td>
@@ -2599,29 +2707,35 @@
       currentAttemptResult = rec;
       currentFeedbackData = rec.feedback || null;
       selectExperiment(rec.expId);
+      const f = rec.feedback;
+      document.getElementById("kolbLearned").value = f ? f.kolbLearned : "";
+      document.getElementById("kolbSuggestion").value = (f && f.kolbSuggestion !== "None") ? f.kolbSuggestion : "";
+      updateWordCount();
       renderPrintableReport();
       showToast(`Loaded report for ${rec.studentName} (${rec.studentRoll})`, "📄");
     }
 
     function clearLedgerConfirm() {
+      if (!confirm(`Delete ALL records of academic year ${settings.ay}? This cannot be undone. Export a backup first (Compliance → Archive & Backup).`)) return;
       savedRecords = [];
-      localStorage.removeItem("agcop_records_v1");
+      localStorage.removeItem(recKey(settings.ay));
       renderSavedLedger();
       showToast("Class ledger cleared.", "🗑️");
     }
 
     function exportCSVLedger() {
-      if (savedRecords.length === 0) {
+      const recs = savedRecords.filter(canSee);
+      if (recs.length === 0) {
         showToast("No saved student records to export yet.", "⚠️");
         return;
       }
       const headers = ["Date", "Roll Number", "Student Name", "Batch", "Experiment", "CO", "Score", "Total", "Percentage", "Attainment Level", "Feedback Rating", "Kolb Reflection"];
-      const rows = savedRecords.map(r => [
+      const rows = recs.map(r => [
         r.date,
         `"${r.studentRoll}"`,
-        `"${r.studentName}"`,
+        `"${String(r.studentName).replace(/"/g, '""')}"`,
         `"${r.batch}"`,
-        `"${r.expTitle}"`,
+        `"${String(r.expTitle).replace(/"/g, '""')}"`,
         r.co,
         r.score,
         r.total,
@@ -2630,10 +2744,9 @@
         r.feedback ? r.feedback.avgRating : "N/A",
         r.feedback ? `"${r.feedback.kolbLearned.replace(/"/g, '""')}"` : ""
       ]);
-      const csvContent = "data:text/csv;charset=utf-8," + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
-      const encodedUri = encodeURI(csvContent);
+      const csvContent = "\uFEFF" + [headers.join(","), ...rows.map(e => e.join(","))].join("\n");
       const link = document.createElement("a");
-      link.setAttribute("href", encodedUri);
+      link.setAttribute("href", URL.createObjectURL(new Blob([csvContent], { type: "text/csv;charset=utf-8" })));
       link.setAttribute("download", `AGCOP_Pharmaceutics_COPO_Ledger_${new Date().toISOString().split("T")[0]}.csv`);
       document.body.appendChild(link);
       link.click();
@@ -2724,6 +2837,223 @@
       };
       reader.readAsText(file);
     }
+    // =========================================================================
+    // 11. ACADEMIC YEAR, CUMULATIVE PROGRESS & COMPLIANCE DOCUMENTATION
+    // =========================================================================
+    const qid = id => document.getElementById(id);
+    const canSee = () => true;
+    function saveSettings() { localStorage.setItem(SETTINGS_KEY, JSON.stringify(settings)); }
+    function getAYList() {
+      const set = new Set([settings.ay]);
+      for (let i = 0; i < localStorage.length; i++) { const k = localStorage.key(i); if (k && k.startsWith("agcop_records_ay_")) set.add(k.replace("agcop_records_ay_", "")); }
+      return [...set].sort().reverse();
+    }
+    function renderAYPicker() {
+      const p = qid("ayPicker"); if (!p) return;
+      p.innerHTML = getAYList().map(a => `<option value="${a}" ${a === settings.ay ? "selected" : ""}>${a}</option>`).join("") + '<option value="__new">➕ New academic year…</option>';
+    }
+    function onAYChange(v) {
+      if (v === "__new") {
+        const a = (prompt("Enter the new academic year (format 2026-27):") || "").trim();
+        if (!/^\d{4}-\d{2}$/.test(a)) { if (a) showToast("Use the format 2026-27", "⚠️"); renderAYPicker(); return; }
+        v = a;
+      }
+      settings.ay = v; saveSettings(); savedRecords = loadAY(v); currentAttemptResult = null; currentFeedbackData = null;
+      renderAYPicker(); renderSavedLedger(); renderCoPoMatrix();
+      if (window.__tab === "progress") renderProgress(); if (window.__tab === "compliance") renderCompliance();
+      showToast(`Academic year ${v} selected — records shown are for this year only.`, "🎓");
+    }
+    function studentsInAY() {
+      const m = {}; savedRecords.forEach(r => { const k = r.studentRoll.toLowerCase(); if (!m[k]) m[k] = { roll: k, name: r.studentName, batch: r.batch }; });
+      return Object.values(m).sort((a, b) => a.roll.localeCompare(b.roll, undefined, { numeric: true }));
+    }
+    function pickStudent(roll) {
+      const u = studentsInAY().find(x => x.roll === roll); if (!u) return;
+      qid("studentName").value = u.name; qid("studentRoll").value = u.roll; qid("studentBatch").value = u.batch;
+      currentAttemptResult = null; currentFeedbackData = null; syncStudentProfile(); renderProgress();
+    }
+    function pickerHTML() {
+      const st = studentsInAY(), cur = qid("studentRoll").value.trim().toLowerCase();
+      return `<div class="no-print bg-white rounded-2xl border border-slate-200 p-4 flex flex-wrap items-center gap-3"><label class="text-xs font-bold text-slate-700">Select student (Academic Year ${esc(settings.ay)}):</label><select onchange="pickStudent(this.value)" class="px-3 py-2 text-xs border border-slate-300 rounded-xl bg-white"><option value="">— choose —</option>${st.map(u => `<option value="${esc(u.roll)}" ${u.roll === cur ? "selected" : ""}>${esc(u.roll)} — ${esc(u.name)}</option>`).join("")}</select><span class="text-[11px] text-slate-500">${st.length} student(s) with records. New students appear after their first quiz/feedback is saved.</span></div>`;
+    }
+    function studentSummary(roll) {
+      const rows = experiments.map(e => {
+        const rec = savedRecords.find(r => r.studentRoll.toLowerCase() === roll && r.expId === e.id);
+        const quiz = !!(rec && rec.questionBreakdown && rec.questionBreakdown.length > 0);
+        const refl = !!(rec && rec.feedback && countWords(rec.feedback.kolbLearned) >= MIN_REFLECTION_WORDS);
+        return { e, rec, quiz, refl, done: quiz && refl };
+      });
+      const done = rows.filter(r => r.done);
+      return { rows, done: done.length, total: rows.length, avg: done.length ? Math.round(done.reduce((a, r) => a + r.rec.pct, 0) / done.length) : 0 };
+    }
+    function openIndividualReport(expId) { selectExperiment(expId); switchTab("report"); }
+    function renderProgress() {
+      const el = document.getElementById("progressContent");
+      const roll = document.getElementById("studentRoll").value.trim().toLowerCase();
+      const name = document.getElementById("studentName").value.trim();
+      if (!roll) { el.innerHTML = pickerHTML() + `<div class="bg-white rounded-2xl border border-slate-200 p-6 text-sm text-slate-600">Choose a student above, or enter your details in the Assessment tab.</div>`; }
+      else {
+        const sm = studentSummary(roll), complete = sm.done === sm.total, pct = Math.round(sm.done / sm.total * 100), lv = computeAttainmentLevel(sm.avg);
+        const coRows = ["CO1", "CO2", "CO3", "CO4", "CO5"].map(co => {
+          const r = sm.rows.filter(x => x.e.co === co), d = r.filter(x => x.done);
+          const a = d.length ? Math.round(d.reduce((s, x) => s + x.rec.pct, 0) / d.length) : null;
+          return `<tr class="border-t"><td class="p-2 font-bold text-blue-900">${co}</td><td class="p-2">${d.length} / ${r.length}</td><td class="p-2">${a === null ? "—" : a + "%"}</td><td class="p-2">${a === null ? "—" : computeAttainmentLevel(a).label}</td></tr>`;
+        }).join("");
+        let last = null;
+        const pr = sm.rows.map(x => {
+          const hdr = x.e.category !== last ? `<tr class="bg-slate-100"><td colspan="6" class="p-2 font-extrabold text-[11px] uppercase text-slate-600">${esc(x.e.category)}</td></tr>` : ""; last = x.e.category;
+          const st = x.done ? '<span class="text-emerald-700 font-bold">✅ Completed</span>' : x.quiz ? '<span class="text-amber-700 font-bold">⏳ Reflection pending</span>' : '<span class="text-slate-400">⬜ Not done</span>';
+          return `${hdr}<tr class="border-t"><td class="p-2 font-bold">${x.e.number}</td><td class="p-2">${esc(x.e.title)}</td><td class="p-2">${x.e.co}</td><td class="p-2">${st}</td><td class="p-2">${x.quiz ? x.rec.score + "/" + x.rec.total + " (" + x.rec.pct + "%)" : "—"}</td><td class="p-2 no-print"><button onclick="openIndividualReport('${x.e.id}')" class="px-2 py-1 rounded-lg bg-blue-50 text-blue-900 font-bold">${x.quiz ? "Individual report" : "Open"}</button></td></tr>`;
+        }).join("");
+        const det = sm.rows.filter(x => x.done).map(x => `<div class="border border-slate-300 rounded-xl p-3 text-xs space-y-1" style="break-inside:avoid"><div class="font-extrabold text-slate-900">${x.e.number} — ${esc(x.e.title)} <span class="text-blue-900">(${x.e.co})</span></div><div>Score: <b>${x.rec.score}/${x.rec.total} (${x.rec.pct}%)</b> • ${x.rec.attainmentLabel} • Satisfaction: <b>${x.rec.feedback.avgRating}/5</b> • Date: ${esc(x.rec.date)}</div><div><b>NEP reflection:</b> ${esc(x.rec.feedback.kolbLearned)}</div></div>`).join("");
+        el.innerHTML = pickerHTML() + `
+          <div class="no-print flex flex-wrap items-center justify-between gap-3 bg-white rounded-2xl border border-slate-200 p-4">
+            <p class="text-xs text-slate-600">A practical counts as <b>completed</b> when the quiz is submitted and the NEP reflection (${MIN_REFLECTION_WORDS}+ words) is saved.</p>
+            <button onclick="window.print()" class="px-4 py-2 rounded-xl bg-blue-900 hover:bg-blue-800 text-white text-xs font-bold">🖨️ Print / Save ${complete ? "FINAL" : "Interim"} Cumulative Report</button>
+          </div>
+          <div class="print-container bg-white rounded-2xl border border-slate-300 shadow-sm p-6 space-y-5">
+            <div class="border-b-2 border-slate-800 pb-3"><p class="text-xs font-bold uppercase text-red-700">${esc(settings.college)} • Academic Year ${esc(settings.ay)}</p><h2 class="text-xl font-extrabold">General Pharmacy Practical — ${complete ? "Final" : "Interim"} Cumulative Report</h2><p class="text-xs text-slate-600 mt-1">Student: <b>${esc(name)}</b> • Roll No.: <b>${esc(roll)}</b> • ${esc(document.getElementById("studentBatch").value)}</p></div>
+            <div class="${complete ? "bg-emerald-50 border-emerald-400" : "bg-amber-50 border-amber-300"} border-2 rounded-xl p-4"><div class="text-sm font-extrabold">${complete ? "🎉 All practicals completed — final cumulative report" : "Progress so far: " + (sm.total - sm.done) + " practical(s) remaining"}</div><div class="w-full bg-white border rounded-full h-3 mt-2"><div class="h-3 rounded-full ${complete ? "bg-emerald-600" : "bg-blue-700"}" style="width:${pct}%"></div></div><div class="text-xs mt-1">${sm.done} of ${sm.total} practicals completed (${pct}%) • Average score of completed practicals: <b>${sm.avg}%</b> • ${lv.label}</div></div>
+            <div class="overflow-x-auto"><table class="w-full text-xs"><thead><tr class="bg-slate-100 text-left"><th class="p-2">CO</th><th class="p-2">Practicals completed</th><th class="p-2">Average score</th><th class="p-2">Attainment</th></tr></thead><tbody>${coRows}</tbody></table></div>
+            <div class="overflow-x-auto"><table class="w-full text-xs"><thead><tr class="bg-slate-100 text-left"><th class="p-2">No.</th><th class="p-2">Practical</th><th class="p-2">CO</th><th class="p-2">Status</th><th class="p-2">Score</th><th class="p-2 no-print"></th></tr></thead><tbody>${pr}</tbody></table></div>
+            <div><h3 class="text-sm font-extrabold mb-2">Practical-wise Details</h3><div class="space-y-2">${det || '<p class="text-xs text-slate-500 italic">No completed practicals yet.</p>'}</div></div>
+          </div>`;
+      }
+      const tp = document.getElementById("classProgress");
+      tp.innerHTML = `<div class="bg-white rounded-2xl border border-slate-200 p-5 no-print"><div class="flex items-center justify-between mb-3"><h3 class="text-base font-extrabold">👥 Class Progress Register — AY ${esc(settings.ay)}</h3><button onclick="exportClassProgress()" class="px-3 py-1.5 rounded-xl bg-emerald-700 text-white text-xs font-bold">📥 Export CSV</button></div><div class="overflow-x-auto"><table class="w-full text-xs"><thead><tr class="bg-slate-100 text-left"><th class="p-2">Roll</th><th class="p-2">Name</th><th class="p-2">Batch</th><th class="p-2">Completed</th><th class="p-2">Avg score</th><th class="p-2"></th></tr></thead><tbody>${studentsInAY().map(u => { const s = studentSummary(u.roll); return `<tr class="border-t"><td class="p-2 font-bold">${esc(u.roll)}</td><td class="p-2">${esc(u.name)}</td><td class="p-2">${esc(u.batch)}</td><td class="p-2">${s.done}/${s.total}</td><td class="p-2">${s.avg}%</td><td class="p-2"><button onclick="pickStudent('${esc(u.roll)}')" class="px-2 py-1 rounded-lg bg-blue-50 text-blue-900 font-bold">View</button></td></tr>`; }).join("") || '<tr><td colspan="6" class="p-3 text-slate-400">No student records in this academic year yet.</td></tr>'}</tbody></table></div></div>`;
+    }
+    function exportClassProgress() {
+      const q = t => `"${String(t).replace(/"/g, '""')}"`;
+      const rows = studentsInAY().map(u => { const s = studentSummary(u.roll); return [q(settings.ay), q(u.roll), q(u.name), q(u.batch), s.done, s.total, s.avg + "%", s.done === s.total ? "Final" : "Interim"].join(","); });
+      const csv = "\uFEFF" + ["Academic Year,Roll,Name,Batch,Completed,Total,Average,Report", ...rows].join("\n");
+      const l = document.createElement("a"); l.href = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+      l.download = `AGCOP_Class_Progress_${settings.ay}.csv`; document.body.appendChild(l); l.click(); l.remove();
+    }
+
+    // ---------------- Compliance & Records (PCI / NBA / NAAC documentation) ----------------
+    let compView = "settings";
+    const COMP_VIEWS = [["settings", "⚙️ Institution & Settings"], ["index", "📁 Course File Index"], ["co", "🎯 CO–PO Attainment Sheet"], ["register", "🧾 Practical Register"], ["feedback", "💬 Feedback Analysis"], ["pci", "✅ Inspection Checklist"], ["archive", "🗄️ Archive & Backup"]];
+    const PCI_ITEMS = [
+      "Approved practical syllabus and laboratory manual available in the laboratory",
+      "All syllabus practicals conducted (experiment-wise coverage recorded)",
+      "Student practical records / journals completed, assessed and signed",
+      "Batch-wise practical schedule / timetable displayed; batch size within prescribed norms",
+      "Practical attendance register maintained",
+      "Equipment / apparatus stock register updated",
+      "Chemicals and reagents stock register maintained; expiry checked",
+      "Laboratory safety: fire extinguisher, first-aid, eye-wash, MSDS and safety signage",
+      "Waste disposal arrangements documented",
+      "Internal (continuous) practical assessment records maintained",
+      "CO–PO mapping and CO attainment documented for the academic year",
+      "Student feedback collected, analysed and action taken recorded",
+      "Course file prepared and signed by faculty and HOD",
+      "Previous academic year records archived (backup exported)"
+    ];
+    const compKey = ay => "agcop_compliance_" + ay;
+    const loadComp = () => { try { return Object.assign({ checks: {}, remarks: {}, custom: [], action: "" }, JSON.parse(localStorage.getItem(compKey(settings.ay)))); } catch (e) { return { checks: {}, remarks: {}, custom: [], action: "" }; } };
+    const saveComp = c => localStorage.setItem(compKey(settings.ay), JSON.stringify(c));
+    const docHead = t => `<div class="border-b-2 border-slate-800 pb-3 mb-4"><p class="text-xs font-bold uppercase text-red-700">${esc(settings.college)}</p><h2 class="text-xl font-extrabold">${t}</h2><p class="text-xs text-slate-600 mt-1">${esc(settings.dept)} • ${esc(settings.programme)} • ${esc(settings.yearSem)} • ${esc(settings.course)}${settings.courseCode ? " (" + esc(settings.courseCode) + ")" : ""} • <b>Academic Year ${esc(settings.ay)}</b></p></div>`;
+    const signBlock = () => `<div class="grid grid-cols-3 gap-6 mt-12 text-xs text-center">${[["Course Faculty", settings.faculty], ["Head of Department", settings.hod], ["Principal", settings.principal]].map(([r, n]) => `<div><div class="border-t border-slate-600 pt-1 font-bold">${r}</div><div>${esc(n)}</div></div>`).join("")}</div><p class="text-[10px] text-slate-400 mt-4">Generated on ${new Date().toLocaleDateString("en-IN")} from the Practical Portal. Verify formats against the current PCI / NBA / NAAC guidelines before submission.</p>`;
+    const printBar = () => `<div class="no-print flex justify-end mb-3"><button onclick="window.print()" class="px-4 py-2 rounded-xl bg-blue-900 hover:bg-blue-800 text-white text-xs font-bold">🖨️ Print / Save as PDF</button></div>`;
+    const docWrap = (title, body) => printBar() + `<div class="print-container bg-white rounded-2xl border border-slate-300 shadow-sm p-6">${docHead(title)}${body}${signBlock()}</div>`;
+    const tbl = (head, rows, cls = "") => `<div class="overflow-x-auto"><table class="w-full text-xs ${cls}"><thead><tr class="bg-slate-100 text-left">${head.map(h => `<th class="p-2 border border-slate-300">${h}</th>`).join("")}</tr></thead><tbody>${rows.map(r => `<tr>${r.map(c => `<td class="p-2 border border-slate-300 align-top">${c}</td>`).join("")}</tr>`).join("")}</tbody></table></div>`;
+    const levelOf = p => p >= settings.l3 ? 3 : p >= settings.l2 ? 2 : p >= settings.l1 ? 1 : 0;
+    function classCOData() {
+      const rolls = {};
+      savedRecords.forEach(r => { if (!(r.questionBreakdown && r.questionBreakdown.length)) return; const k = r.studentRoll.toLowerCase(); rolls[k] = rolls[k] || {}; if (rolls[k][r.co] === undefined || r.pct > rolls[k][r.co]) rolls[k][r.co] = r.pct; });
+      return Object.values(rolls);
+    }
+    function renderCompliance() {
+      const el = qid("complianceContent"); if (!el) return;
+      const nav = `<div class="no-print flex flex-wrap gap-1.5 bg-white rounded-2xl border border-slate-200 p-3">${COMP_VIEWS.map(([k, t]) => `<button onclick="compView='${k}';renderCompliance()" class="px-3 py-2 rounded-xl text-xs font-bold ${k === compView ? "bg-blue-950 text-white" : "bg-slate-100 text-slate-700 hover:bg-slate-200"}">${t}</button>`).join("")}</div>`;
+      const note = compView === "settings" ? `<div class="no-print bg-blue-50 border border-blue-200 rounded-2xl p-4 text-xs text-blue-950 leading-relaxed"><b>How this supports inspections & accreditation.</b> The documents below give ready, academic-year-wise evidence for <b>PCI</b> inspection (practical records, laboratory readiness), <b>NBA</b> (course file, CO–PO attainment, assessment and feedback evidence) and <b>NAAC</b> Criterion II (Teaching-Learning & Evaluation: outcome attainment, student-centric methods, student satisfaction). They are supporting documents; attach items maintained outside this app (attendance, stock registers) and check the latest official formats.</div>` : "";
+      el.innerHTML = nav + note + `<div>${compBody()}</div>`;
+    }
+    function compBody() {
+      const C = loadComp(), st = studentsInAY(), N = experiments.length;
+      if (compView === "settings") {
+        const f = (k, l, t = "text") => `<div><label class="block text-xs font-semibold mb-1">${l}</label><input id="set_${k}" type="${t}" value="${esc(settings[k])}" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-xl"></div>`;
+        return `<div class="bg-white rounded-2xl border border-slate-200 p-5"><h3 class="text-base font-extrabold mb-3">⚙️ Institution, Course & Attainment Settings</h3><div class="grid sm:grid-cols-2 gap-3">${f("college", "Institution")}${f("dept", "Department")}${f("programme", "Programme")}${f("yearSem", "Class / Year / Semester")}${f("course", "Course title")}${f("courseCode", "Course code")}${f("faculty", "Course faculty name")}${f("hod", "Head of Department")}${f("principal", "Principal")}</div><h4 class="text-sm font-extrabold mt-5 mb-2">CO attainment rule (editable, applied to the class)</h4><div class="grid sm:grid-cols-4 gap-3">${f("target", "Target score per student (%)", "number")}${f("l3", "Level 3: ≥ % students achieving", "number")}${f("l2", "Level 2: ≥ % students", "number")}${f("l1", "Level 1: ≥ % students", "number")}</div><p class="text-[11px] text-slate-500 mt-2">Default: a student attains a CO with ≥ ${settings.target}% score; class Level 3 if ≥ ${settings.l3}% of students attain it, Level 2 if ≥ ${settings.l2}%, Level 1 if ≥ ${settings.l1}%. Change to your institution's approved rule.</p><button onclick="saveSettingsForm()" class="mt-4 px-5 py-2.5 rounded-xl bg-emerald-700 text-white text-xs font-bold">Save Settings</button></div>`;
+      }
+      if (compView === "index") {
+        const fbN = savedRecords.filter(r => r.feedback).length, quizN = savedRecords.filter(r => r.questionBreakdown && r.questionBreakdown.length).length;
+        const chk = Object.values(C.checks).filter(Boolean).length, tot = PCI_ITEMS.length + C.custom.length;
+        const rows = [
+          ["Course syllabus, objectives and course outcomes (COs)", "Syllabus & COs tab", "Available in portal"],
+          ["List of practicals (category-wise, with source pharmacopoeia)", "Categories & Index tab", `${N} practicals`],
+          ["Laboratory manual: aim, theory, formula, procedure, precautions, labelling", "Practical Guide tab", "Available in portal"],
+          ["CO–PO mapping matrix", "CO–PO Attainment tab", "Available in portal"],
+          ["Student assessment (quiz) records", "Assessment / Ledger", `${quizN} records, ${st.length} students`],
+          ["Student feedback and NEP experiential-learning reflections", "Feedback & NEP Log", `${fbN} records`],
+          ["Class CO attainment sheet", "Compliance → CO–PO Attainment Sheet", st.length ? "Generated from records" : "No data yet"],
+          ["Practical marks / completion register", "Compliance → Practical Register", st.length ? "Generated from records" : "No data yet"],
+          ["Feedback analysis with action taken", "Compliance → Feedback Analysis", C.action ? "Action taken recorded" : "Action taken pending"],
+          ["Inspection readiness checklist", "Compliance → Inspection Checklist", `${chk} of ${tot} items ticked`],
+          ["Attendance register, stock registers, safety records", "Maintained outside the portal", "Attach separately"]
+        ].map((r, i) => [i + 1, ...r]);
+        return docWrap("Course File Index", tbl(["Sr.", "Course file item", "Where / how", "Status"], rows));
+      }
+      if (compView === "co") {
+        const data = classCOData(), COs = ["CO1", "CO2", "CO3", "CO4", "CO5"], lv = {};
+        const rows = COURSE_OUTCOMES.map(o => { const a = data.filter(s => s[o.co] !== undefined), ok = a.filter(s => s[o.co] >= settings.target), pc = a.length ? Math.round(ok.length / a.length * 100) : 0; lv[o.co] = a.length ? levelOf(pc) : null; return [o.co, esc(o.text), experiments.filter(e => e.co === o.co).length, a.length, ok.length, a.length ? pc + "%" : "—", lv[o.co] === null ? "—" : "Level " + lv[o.co]]; });
+        const pos = Array.from({ length: 11 }, (_, i) => "PO" + (i + 1)).map(po => { let n = 0, d = 0; COs.forEach(co => { const w = CO_PO_MATRIX[co][po] || 0; if (w && lv[co] !== null) { n += w * lv[co]; d += w; } }); return [po, d ? (n / d).toFixed(2) : "—"]; });
+        return docWrap("Course Outcome (CO) and PO Attainment Sheet — Direct Assessment", `<p class="text-xs mb-2">Rule: student attains a CO at ≥ <b>${settings.target}%</b>; class Level 3 / 2 / 1 at ≥ <b>${settings.l3}% / ${settings.l2}% / ${settings.l1}%</b> of students (best score per CO). Students assessed: <b>${st.length}</b>.</p>${tbl(["CO", "Outcome", "Practicals", "Students assessed", "Students attained", "% attained", "Class level"], rows)}<h3 class="text-sm font-extrabold mt-5 mb-2">PO attainment (weighted by the CO–PO matrix, scale 0–3)</h3>${tbl(pos.map(p => p[0]), [pos.map(p => p[1])])}`);
+      }
+      if (compView === "register") {
+        const head = ["Roll", "Name", ...experiments.map(e => e.number), "Done", "Avg %"];
+        const rows = st.map(u => { const s = studentSummary(u.roll); return [esc(u.roll), esc(u.name), ...s.rows.map(r => r.quiz ? r.rec.pct + (r.done ? "" : "*") : "—"), s.done + "/" + s.total, s.avg]; });
+        return docWrap("Practical Performance Register", `<p class="text-[11px] mb-2">Cells show quiz score %. <b>*</b> = reflection pending (not yet completed). "Done" = practicals with quiz + NEP reflection. Print in landscape.</p>` + (rows.length ? tbl(head, rows, "text-[10px]") : '<p class="text-xs text-slate-500">No records in this academic year yet.</p>'));
+      }
+      if (compView === "feedback") {
+        const g = {}; savedRecords.forEach(r => { if (r.feedback) (g[r.expId] = g[r.expId] || []).push(r.feedback); });
+        const avg = (a, k) => (a.reduce((s, f) => s + (+f[k] || 0), 0) / a.length).toFixed(2);
+        const rows = experiments.filter(e => g[e.id]).map(e => { const a = g[e.id]; return [e.number, esc(e.title), a.length, avg(a, "clarity"), avg(a, "formulation"), avg(a, "confidence"), avg(a, "assessment"), avg(a, "avgRating")]; });
+        const all = Object.values(g).flat(), sug = all.filter(f => f.kolbSuggestion && f.kolbSuggestion !== "None").map(f => `<li>${esc(f.kolbSuggestion)}</li>`).join("");
+        return docWrap("Student Feedback Analysis", `<p class="text-xs mb-2">Responses: <b>${all.length}</b> • Overall satisfaction: <b>${all.length ? avg(all, "avgRating") + " / 5 (" + Math.round(avg(all, "avgRating") / 5 * 100) + "%)" : "—"}</b> • NEP reflections ≥ ${MIN_REFLECTION_WORDS} words: <b>${all.filter(f => countWords(f.kolbLearned) >= MIN_REFLECTION_WORDS).length}</b></p>` + (rows.length ? tbl(["No.", "Practical", "n", "Clarity", "Formulation", "Confidence", "Assessment", "Overall"], rows) : '<p class="text-xs text-slate-500">No feedback recorded yet.</p>') + `<h3 class="text-sm font-extrabold mt-4 mb-1">Student suggestions</h3><ul class="list-disc pl-5 text-xs space-y-0.5">${sug || "<li>None recorded</li>"}</ul><h3 class="text-sm font-extrabold mt-4 mb-1">Action taken on feedback</h3><textarea id="actionTaken" onchange="saveActionTaken(this.value)" rows="4" class="w-full text-xs border border-slate-300 rounded-xl p-2" placeholder="Record the improvements made on the basis of this feedback…">${esc(C.action)}</textarea>`);
+      }
+      if (compView === "pci") {
+        const items = [...PCI_ITEMS, ...C.custom], done = items.filter((_, i) => C.checks[i]).length;
+        const rows = items.map((t, i) => [`<input type="checkbox" ${C.checks[i] ? "checked" : ""} onchange="toggleCheck(${i},this.checked)">`, esc(t), `<input value="${esc(C.remarks[i] || "")}" onchange="setRemark(${i},this.value)" class="w-full text-xs border border-slate-200 rounded p-1" placeholder="Remarks / evidence reference">`]);
+        return docWrap("Inspection Readiness Checklist (PCI / NBA / NAAC)", `<p class="text-xs mb-2">Readiness: <b>${done} of ${items.length}</b> items (${Math.round(done / items.length * 100)}%). Edit items to match the current inspection format.</p>${tbl(["✓", "Item", "Remarks / evidence"], rows)}<div class="no-print flex gap-2 mt-3"><input id="newCheck" class="flex-1 text-xs border border-slate-300 rounded-xl p-2" placeholder="Add your own checklist item"><button onclick="addCheckItem()" class="px-3 py-2 rounded-xl bg-slate-800 text-white text-xs font-bold">Add</button></div>`);
+      }
+      const rows = getAYList().map(a => { let r = []; try { r = JSON.parse(localStorage.getItem(recKey(a))) || []; } catch (e) {} const rl = new Set(r.map(x => x.studentRoll.toLowerCase())); const q = r.filter(x => x.questionBreakdown && x.questionBreakdown.length); return [a + (a === settings.ay ? " (current)" : ""), rl.size, r.length, q.length ? Math.round(q.reduce((s, x) => s + x.pct, 0) / q.length) + "%" : "—"]; });
+      return `<div class="bg-white rounded-2xl border border-slate-200 p-5 space-y-4"><h3 class="text-base font-extrabold">🗄️ Academic-Year Archive & Backup</h3>${tbl(["Academic year", "Students", "Records", "Avg score"], rows)}<div class="flex flex-wrap gap-2"><button onclick="exportBackup()" class="px-4 py-2 rounded-xl bg-blue-900 text-white text-xs font-bold">📦 Export Full Backup (all years, JSON)</button><label class="px-4 py-2 rounded-xl bg-slate-100 border border-slate-300 text-xs font-bold cursor-pointer">📂 Restore Backup<input type="file" accept=".json" class="hidden" onchange="importBackup(this)"></label></div><p class="text-xs text-slate-600 leading-relaxed"><b>Important:</b> this portal has no server — records live in this browser on this computer. Export a backup after every batch and at year-end, and keep it with the course file (college Drive / HOD). Use the academic-year selector at the top to start a new year; earlier years stay archived and read-only in practice.</p></div>`;
+    }
+    function saveSettingsForm() {
+      ["college", "dept", "programme", "yearSem", "course", "courseCode", "faculty", "hod", "principal"].forEach(k => { settings[k] = qid("set_" + k).value.trim(); });
+      ["target", "l3", "l2", "l1"].forEach(k => { const v = parseFloat(qid("set_" + k).value); if (!isNaN(v)) settings[k] = v; });
+      saveSettings(); showToast("Settings saved — they appear on all generated documents.", "✅"); renderCompliance();
+    }
+    const upd = fn => { const c = loadComp(); fn(c); saveComp(c); };
+    function toggleCheck(i, v) { upd(c => { c.checks[i] = v; }); renderCompliance(); }
+    function setRemark(i, v) { upd(c => { c.remarks[i] = v; }); }
+    function addCheckItem() { const t = qid("newCheck").value.trim(); if (t) { upd(c => c.custom.push(t)); renderCompliance(); } }
+    function saveActionTaken(v) { upd(c => { c.action = v; }); showToast("Action taken saved.", "✅"); }
+    function exportBackup() {
+      const data = { app: "AGCOP-GP-Portal", version: 2, exportedAt: new Date().toISOString(), settings, records: {}, compliance: {}, experiments: JSON.parse(localStorage.getItem(STORE_KEY) || "null") };
+      getAYList().forEach(a => { data.records[a] = loadAY(a); try { data.compliance[a] = JSON.parse(localStorage.getItem(compKey(a))); } catch (e) {} });
+      const l = document.createElement("a"); l.href = URL.createObjectURL(new Blob([JSON.stringify(data)], { type: "application/json" }));
+      l.download = `AGCOP_Portal_Backup_${new Date().toISOString().split("T")[0]}.json`; document.body.appendChild(l); l.click(); l.remove();
+    }
+    function importBackup(inp) {
+      const f = inp.files[0]; if (!f) return;
+      const rd = new FileReader();
+      rd.onload = () => {
+        try {
+          const d = JSON.parse(rd.result);
+          if (d.app !== "AGCOP-GP-Portal") throw new Error("not a portal backup");
+          if (!confirm("Restore this backup? Records of the academic years inside it will be REPLACED on this computer.")) return;
+          Object.entries(d.records).forEach(([a, r]) => localStorage.setItem(recKey(a), JSON.stringify(r)));
+          Object.entries(d.compliance || {}).forEach(([a, c]) => { if (c) localStorage.setItem(compKey(a), JSON.stringify(c)); });
+          if (d.settings) localStorage.setItem(SETTINGS_KEY, JSON.stringify(d.settings));
+          if (d.experiments) localStorage.setItem(STORE_KEY, JSON.stringify(d.experiments));
+          location.reload();
+        } catch (e) { showToast("Invalid backup file.", "⚠️"); }
+      };
+      rd.readAsText(f);
+    }
+    window.addEventListener("DOMContentLoaded", renderAYPicker);
+
   </script>
 </body>
 </html>
