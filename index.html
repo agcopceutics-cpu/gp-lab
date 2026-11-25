@@ -6,6 +6,7 @@
   <title>Pharmaceutics Lab Assessment & CO–PO Portal | AGCOP Satara</title>
   <!-- Tailwind CSS -->
   <script src="https://cdn.tailwindcss.com"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <!-- Google Fonts: Inter -->
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
@@ -43,6 +44,9 @@
       }
     }
 
+
+    body.mode-student .faculty-only { display: none !important; }
+    body.mode-faculty .student-only { display: none !important; }
 
     /* Custom Scrollbar */
     ::-webkit-scrollbar {
@@ -164,6 +168,7 @@
 
         <!-- Right Controls -->
         <div class="flex flex-wrap items-center justify-center gap-2 no-print">
+          <span class="text-[10px] font-extrabold px-2 py-1 rounded-lg bg-slate-800 text-white uppercase">student portal</span>
           <label class="text-xs font-bold text-slate-700 flex items-center gap-1">🎓 Academic Year <select id="ayPicker" onchange="onAYChange(this.value)" class="px-2 py-1.5 text-xs border border-slate-300 rounded-xl bg-white"></select></label>
           <button onclick="switchTab('report')" class="px-3.5 py-2 text-xs font-semibold rounded-xl bg-blue-900 hover:bg-blue-800 text-white shadow-sm transition flex items-center gap-1.5">
             <span>📄</span> Official CO–PO & Assessment Report
@@ -184,14 +189,19 @@
         <button onclick="switchTab('categories')" id="tab-categories" class="nav-tab px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap bg-slate-100 text-slate-700 hover:bg-slate-200 transition">
           🗂️ Categories &amp; Index
         </button>
+        <span class="hidden sm:block w-px h-6 bg-slate-300 mx-1"></span>
         <button onclick="switchTab('practical')" id="tab-practical" class="nav-tab px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap bg-slate-100 text-slate-700 hover:bg-slate-200 transition">
-          ⚗️ Practical Guide
+          ⚗️ ① Practical Guide
         </button>
         <button onclick="switchTab('assessment')" id="tab-assessment" class="nav-tab px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap bg-slate-100 text-slate-700 hover:bg-slate-200 transition">
-          📝 Assessment
+          📝 ② Assessment
         </button>
         <button onclick="switchTab('feedback')" id="tab-feedback" class="nav-tab px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap bg-slate-100 text-slate-700 hover:bg-slate-200 transition">
-          💬 Feedback &amp; NEP Log
+          💬 ③ Feedback &amp; NEP Log
+        </button>
+        <span class="hidden sm:block w-px h-6 bg-slate-300 mx-1"></span>
+        <button onclick="switchTab('survey')" id="tab-survey" class="nav-tab px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap bg-slate-100 text-slate-700 hover:bg-slate-200 transition">
+          📋 Course Exit Survey
         </button>
         <button onclick="switchTab('copo')" id="tab-copo" class="nav-tab px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap bg-slate-100 text-slate-700 hover:bg-slate-200 transition">
           🎯 CO–PO Attainment
@@ -202,10 +212,11 @@
         <button onclick="switchTab('progress')" id="tab-progress" class="nav-tab px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap bg-slate-100 text-slate-700 hover:bg-slate-200 transition">
           📈 Cumulative Report
         </button>
-        <button onclick="switchTab('compliance')" id="tab-compliance" class="nav-tab px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap bg-slate-100 text-slate-700 hover:bg-slate-200 transition">
+        <span class="hidden sm:block w-px h-6 bg-slate-300 mx-1"></span>
+        <button onclick="switchTab('compliance')" id="tab-compliance" class="faculty-only nav-tab px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap bg-slate-100 text-slate-700 hover:bg-slate-200 transition">
           🏛️ Compliance &amp; Records
         </button>
-        <button onclick="switchTab('manualManager')" id="tab-manualManager" class="nav-tab px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap bg-slate-100 text-slate-700 hover:bg-slate-200 transition">
+        <button onclick="switchTab('manualManager')" id="tab-manualManager" class="faculty-only nav-tab px-4 py-2 rounded-xl text-xs sm:text-sm font-semibold whitespace-nowrap bg-slate-100 text-slate-700 hover:bg-slate-200 transition">
           📚 Manual Manager
         </button>
       </div>
@@ -248,7 +259,7 @@
       <section id="mainSection" class="lg:col-span-12 space-y-6">
 
         <!-- Active Experiment Banner -->
-        <div id="activeBanner" class="hidden bg-white rounded-2xl border border-slate-200 shadow-xs p-5 flex flex-col sm:flex-row sm:items-center justify-between gap-4 no-print">
+        <div id="activeBanner" class="hidden bg-white rounded-2xl border border-slate-200 shadow-xs p-5 space-y-4 no-print">
           <div>
             <div class="flex flex-wrap items-center gap-2 mb-1">
               <span id="activeExpBadge" class="px-2.5 py-0.5 rounded-full text-xs font-bold bg-red-700 text-white">FEATURED PRACTICAL</span>
@@ -262,6 +273,12 @@
               Aim: To prepare and dispense 100 ml of Compound Syrup of Ferrous Phosphate B.P. by the two-beaker chemical reaction method.
             </p>
           </div>
+          <div class="flex flex-wrap items-center gap-2 border-t border-slate-100 pt-3">
+            <button onclick="stepPractical(-1)" class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-xs font-bold">◀ Previous</button>
+            <select id="quickExp" onchange="selectExperiment(this.value)" class="flex-1 min-w-[200px] px-3 py-2 text-xs border border-slate-300 rounded-xl bg-white"></select>
+            <button onclick="stepPractical(1)" class="px-3 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-xs font-bold">Next ▶</button>
+          </div>
+          <div id="stepper" class="flex flex-wrap items-center gap-2 text-xs font-bold"></div>
         </div>
 
         <!-- TAB 1: PRACTICAL GUIDE & FORMULATION -->
@@ -547,6 +564,7 @@
                 <span class="flex gap-2 shrink-0">
                   <button type="button" onclick="switchTab('copo')" class="px-3 py-1.5 rounded-xl bg-blue-900 text-white text-xs font-bold">Next: CO–PO Attainment →</button>
                   <button type="button" onclick="switchTab('report')" class="px-3 py-1.5 rounded-xl bg-emerald-700 text-white text-xs font-bold">View Report →</button>
+                  <button type="button" onclick="stepPractical(1);switchTab('practical')" class="px-3 py-1.5 rounded-xl bg-red-700 text-white text-xs font-bold">Next practical ▶</button>
                 </span>
               </div>
             </form>
@@ -668,7 +686,7 @@
                 <h3 class="text-base font-extrabold text-slate-900">Saved Student Assessment & Feedback Ledger</h3>
                 <p class="text-xs text-slate-500">All student submissions recorded on this workstation (click any row to load its printable report).</p>
               </div>
-              <button onclick="clearLedgerConfirm()" class="px-3 py-1.5 rounded-xl text-xs font-semibold text-red-700 bg-red-50 hover:bg-red-100 border border-red-200">
+              <button onclick="clearLedgerConfirm()" class="faculty-only px-3 py-1.5 rounded-xl text-xs font-semibold text-red-700 bg-red-50 hover:bg-red-100 border border-red-200">
                 Clear Ledger
               </button>
             </div>
@@ -696,9 +714,11 @@
         </div>
 
         <!-- TAB 6: LAB MANUAL MANAGER (UPLOAD / ADD NEW EXPERIMENTS) -->
+        <div id="panel-survey" class="tab-panel hidden space-y-6"><div id="surveyContent"></div></div>
+
         <div id="panel-compliance" class="tab-panel hidden space-y-6"><div id="complianceContent" class="space-y-4"></div></div>
 
-        <div id="panel-progress" class="tab-panel hidden space-y-6"><div id="progressContent" class="space-y-4"></div><div id="classProgress"></div></div>
+        <div id="panel-progress" class="tab-panel hidden space-y-6"><div id="progressContent" class="space-y-4"></div><div id="classProgress" class="faculty-only"></div></div>
 
         <div id="panel-manualManager" class="tab-panel hidden space-y-6">
           <div class="bg-white rounded-2xl border border-slate-200 shadow-xs p-6 space-y-6">
@@ -798,6 +818,9 @@
     // =========================================================================
     // 1. PCI B.PHARM CO-PO ARTICULATION MATRIX (CO1-CO5 vs PO1-PO11)
     // =========================================================================
+    const APP_MODE = "student";
+    document.body.classList.add("mode-" + APP_MODE);
+    const BLOOM = {"CO1": "Apply (L3) + Precision", "CO2": "Apply (L3) / Mechanism (P4)", "CO3": "Apply (L3) / Mechanism (P4)", "CO4": "Analyse (L4) / Mechanism (P4)", "CO5": "Create / Evaluate (L5–L6)"};
     const CO_PO_MATRIX = {
       CO1: { PO1: 3, PO2: 2, PO3: 3, PO4: 1, PO5: 0, PO6: 2, PO7: 1, PO8: 1, PO9: 1, PO10: 0, PO11: 2 },
       CO2: { PO1: 3, PO2: 3, PO3: 2, PO4: 2, PO5: 1, PO6: 3, PO7: 2, PO8: 2, PO9: 2, PO10: 1, PO11: 2 },
@@ -1909,7 +1932,7 @@
     let currentFeedbackData = null;
     const SETTINGS_KEY = "agcop_settings_v1";
     function deriveAY(dateStr) { const d = dateStr ? new Date(dateStr) : new Date(); const y = d.getFullYear(), s0 = d.getMonth() >= 5 ? y : y - 1; return `${s0}-${String(s0 + 1).slice(2)}`; }
-    const DEFAULT_SETTINGS = { college: "Arvind Gavali College of Pharmacy, Satara", dept: "Department of Pharmaceutics", programme: "B.Pharm", yearSem: "F.Y. B.Pharm", course: "General Pharmacy — Practical", courseCode: "", faculty: "", hod: "", principal: "", ay: deriveAY(), target: 60, l3: 70, l2: 60, l1: 50 };
+    const DEFAULT_SETTINGS = { college: "Arvind Gavali College of Pharmacy, Satara", dept: "Department of Pharmaceutics", programme: "B.Pharm", yearSem: "First Year", course: "General Pharmacy — Practical", courseCode: "", faculty: "", hod: "", principal: "", ay: deriveAY(), target: 60, l3: 70, l2: 60, l1: 50, wMarks: 80, wQuiz: 20, wD: 70, wI: 30, pMax: 10, rMax: 5, vMax: 5 };
     let settings = Object.assign({}, DEFAULT_SETTINGS, (() => { try { return JSON.parse(localStorage.getItem(SETTINGS_KEY)) || {}; } catch (e) { return {}; } })());
     const recKey = ay => "agcop_records_ay_" + ay;
     (function migrateLegacy() {
@@ -1971,17 +1994,19 @@
       activeBtn.classList.remove("bg-slate-100", "text-slate-700");
       activeBtn.classList.add("bg-red-700", "text-white", "shadow-xs");
 
-      const wide = ["syllabus", "categories", "progress", "compliance"].includes(tabKey);
-      document.getElementById("expSidebar").classList.toggle("hidden", wide);
-      document.getElementById("activeBanner").classList.toggle("hidden", wide);
+      const showBanner = ["practical", "assessment", "feedback", "report"].includes(tabKey);
+      window.__tab = tabKey;
+      document.getElementById("activeBanner").classList.toggle("hidden", !showBanner);
+      document.getElementById("expSidebar").classList.add("hidden");
       const mainSec = document.getElementById("mainSection");
-      mainSec.classList.toggle("lg:col-span-12", wide);
-      mainSec.classList.toggle("lg:col-span-9", !wide);
+      mainSec.classList.add("lg:col-span-12"); mainSec.classList.remove("lg:col-span-9");
+      updateStepper();
       if (tabKey === "syllabus") renderSyllabus();
       if (tabKey === "categories") renderCategories();
       window.__tab = tabKey;
       if (tabKey === "progress") renderProgress();
       if (tabKey === "compliance") renderCompliance();
+      if (tabKey === "survey") renderSurvey();
       window.scrollTo({ top: 0, behavior: "auto" });
       document.documentElement.scrollTop = 0;
       document.body.scrollTop = 0;
@@ -2056,6 +2081,7 @@
     function selectExperiment(expId) {
       const expChanged = activeExpId !== expId;
       activeExpId = expId;
+      renderQuickSelect();
       if (expChanged) {
         const kl = document.getElementById("kolbLearned"), ks = document.getElementById("kolbSuggestion");
         if (kl) { kl.value = ""; }
@@ -2575,6 +2601,7 @@
       }
       localStorage.setItem(recKey(settings.ay), JSON.stringify(savedRecords));
       renderSavedLedger();
+      updateStepper();
     }
 
     function renderPrintableReport() {
@@ -2865,6 +2892,7 @@
     }
     function studentsInAY() {
       const m = {}; savedRecords.forEach(r => { const k = r.studentRoll.toLowerCase(); if (!m[k]) m[k] = { roll: k, name: r.studentName, batch: r.batch }; });
+      Object.entries(loadMarks().roster).forEach(([k, v]) => { if (!m[k]) m[k] = { roll: k, name: v.name, batch: v.batch }; });
       return Object.values(m).sort((a, b) => a.roll.localeCompare(b.roll, undefined, { numeric: true }));
     }
     function pickStudent(roll) {
@@ -2909,7 +2937,7 @@
         el.innerHTML = pickerHTML() + `
           <div class="no-print flex flex-wrap items-center justify-between gap-3 bg-white rounded-2xl border border-slate-200 p-4">
             <p class="text-xs text-slate-600">A practical counts as <b>completed</b> when the quiz is submitted and the NEP reflection (${MIN_REFLECTION_WORDS}+ words) is saved.</p>
-            <button onclick="window.print()" class="px-4 py-2 rounded-xl bg-blue-900 hover:bg-blue-800 text-white text-xs font-bold">🖨️ Print / Save ${complete ? "FINAL" : "Interim"} Cumulative Report</button>
+            <span class="flex flex-wrap gap-2"><button onclick="pdfStudentReport(qid('studentRoll').value)" class="px-4 py-2 rounded-xl bg-red-700 hover:bg-red-800 text-white text-xs font-bold">📄 Download PDF Report (with graphs)</button><button onclick="window.print()" class="px-4 py-2 rounded-xl bg-blue-900 hover:bg-blue-800 text-white text-xs font-bold">🖨️ Print ${complete ? "FINAL" : "Interim"}</button><button onclick="exportMyRecords()" class="student-only px-4 py-2 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-xs font-bold">📤 Export my file for faculty</button></span>
           </div>
           <div class="print-container bg-white rounded-2xl border border-slate-300 shadow-sm p-6 space-y-5">
             <div class="border-b-2 border-slate-800 pb-3"><p class="text-xs font-bold uppercase text-red-700">${esc(settings.college)} • Academic Year ${esc(settings.ay)}</p><h2 class="text-xl font-extrabold">General Pharmacy Practical — ${complete ? "Final" : "Interim"} Cumulative Report</h2><p class="text-xs text-slate-600 mt-1">Student: <b>${esc(name)}</b> • Roll No.: <b>${esc(roll)}</b> • ${esc(document.getElementById("studentBatch").value)}</p></div>
@@ -2932,7 +2960,7 @@
 
     // ---------------- Compliance & Records (PCI / NBA / NAAC documentation) ----------------
     let compView = "settings";
-    const COMP_VIEWS = [["settings", "⚙️ Institution & Settings"], ["index", "📁 Course File Index"], ["co", "🎯 CO–PO Attainment Sheet"], ["register", "🧾 Practical Register"], ["feedback", "💬 Feedback Analysis"], ["pci", "✅ Inspection Checklist"], ["archive", "🗄️ Archive & Backup"]];
+    const COMP_VIEWS = [["settings", "⚙️ Institution & Settings"], ["marks", "🧪 Practical Marks"], ["index", "📁 Course File Index"], ["map", "🗺️ CO–PO Mapping"], ["co", "🎯 CO–PO Attainment Sheet"], ["register", "🧾 Practical Register"], ["feedback", "💬 Feedback Analysis"], ["pci", "✅ Inspection Checklist"], ["pdf", "📄 PDF Reports"], ["archive", "🗄️ Archive & Backup"]];
     const PCI_ITEMS = [
       "Approved practical syllabus and laboratory manual available in the laboratory",
       "All syllabus practicals conducted (experiment-wise coverage recorded)",
@@ -2973,7 +3001,7 @@
       const C = loadComp(), st = studentsInAY(), N = experiments.length;
       if (compView === "settings") {
         const f = (k, l, t = "text") => `<div><label class="block text-xs font-semibold mb-1">${l}</label><input id="set_${k}" type="${t}" value="${esc(settings[k])}" class="w-full px-3 py-2 text-sm border border-slate-300 rounded-xl"></div>`;
-        return `<div class="bg-white rounded-2xl border border-slate-200 p-5"><h3 class="text-base font-extrabold mb-3">⚙️ Institution, Course & Attainment Settings</h3><div class="grid sm:grid-cols-2 gap-3">${f("college", "Institution")}${f("dept", "Department")}${f("programme", "Programme")}${f("yearSem", "Class / Year / Semester")}${f("course", "Course title")}${f("courseCode", "Course code")}${f("faculty", "Course faculty name")}${f("hod", "Head of Department")}${f("principal", "Principal")}</div><h4 class="text-sm font-extrabold mt-5 mb-2">CO attainment rule (editable, applied to the class)</h4><div class="grid sm:grid-cols-4 gap-3">${f("target", "Target score per student (%)", "number")}${f("l3", "Level 3: ≥ % students achieving", "number")}${f("l2", "Level 2: ≥ % students", "number")}${f("l1", "Level 1: ≥ % students", "number")}</div><p class="text-[11px] text-slate-500 mt-2">Default: a student attains a CO with ≥ ${settings.target}% score; class Level 3 if ≥ ${settings.l3}% of students attain it, Level 2 if ≥ ${settings.l2}%, Level 1 if ≥ ${settings.l1}%. Change to your institution's approved rule.</p><button onclick="saveSettingsForm()" class="mt-4 px-5 py-2.5 rounded-xl bg-emerald-700 text-white text-xs font-bold">Save Settings</button></div>`;
+        return `<div class="bg-white rounded-2xl border border-slate-200 p-5"><h3 class="text-base font-extrabold mb-3">⚙️ Institution, Course & Attainment Settings</h3><div class="grid sm:grid-cols-2 gap-3">${f("college", "Institution")}${f("dept", "Department")}${f("programme", "Programme")}${f("yearSem", "Class / Year / Semester")}${f("course", "Course title")}${f("courseCode", "Course code")}${f("faculty", "Course faculty name")}${f("hod", "Head of Department")}${f("principal", "Principal")}</div><h4 class="text-sm font-extrabold mt-5 mb-2">CO attainment rule (editable, applied to the class)</h4><div class="grid sm:grid-cols-4 gap-3">${f("target", "Target score per student (%)", "number")}${f("l3", "Level 3: ≥ % students achieving", "number")}${f("l2", "Level 2: ≥ % students", "number")}${f("l1", "Level 1: ≥ % students", "number")}</div><h4 class="text-sm font-extrabold mt-5 mb-2">Direct / indirect weights and practical marks</h4><div class="grid sm:grid-cols-4 gap-3">${f("wMarks", "Direct: practical-marks weight", "number")}${f("wQuiz", "Direct: quiz weight", "number")}${f("wD", "Final CO: direct weight", "number")}${f("wI", "Final CO: indirect (survey) weight", "number")}${f("pMax", "Max marks: performance", "number")}${f("rMax", "Max marks: record/journal", "number")}${f("vMax", "Max marks: viva", "number")}</div><p class="text-[11px] text-slate-500 mt-2">Default: a student attains a CO with ≥ ${settings.target}% score; class Level 3 if ≥ ${settings.l3}% of students attain it, Level 2 if ≥ ${settings.l2}%, Level 1 if ≥ ${settings.l1}%. Change to your institution's approved rule.</p><button onclick="saveSettingsForm()" class="mt-4 px-5 py-2.5 rounded-xl bg-emerald-700 text-white text-xs font-bold">Save Settings</button></div>`;
       }
       if (compView === "index") {
         const fbN = savedRecords.filter(r => r.feedback).length, quizN = savedRecords.filter(r => r.questionBreakdown && r.questionBreakdown.length).length;
@@ -2989,15 +3017,19 @@
           ["Practical marks / completion register", "Compliance → Practical Register", st.length ? "Generated from records" : "No data yet"],
           ["Feedback analysis with action taken", "Compliance → Feedback Analysis", C.action ? "Action taken recorded" : "Action taken pending"],
           ["Inspection readiness checklist", "Compliance → Inspection Checklist", `${chk} of ${tot} items ticked`],
+          ["Practical marks (performance, record, viva) per CO", "Compliance → Practical Marks", st.length ? "Entered by faculty" : "No data yet"],
+          ["CO–PO mapping with justification and Bloom level", "Compliance → CO–PO Mapping", C.just && Object.values(C.just).some(Boolean) ? "Justification recorded" : "Justification pending"],
+          ["Indirect assessment: course-exit survey", "Course Exit Survey tab", Object.keys(loadSurveys()).length + " responses"],
           ["Attendance register, stock registers, safety records", "Maintained outside the portal", "Attach separately"]
         ].map((r, i) => [i + 1, ...r]);
         return docWrap("Course File Index", tbl(["Sr.", "Course file item", "Where / how", "Status"], rows));
       }
+      const ex = compExtra(compView, C, st); if (ex) return ex;
       if (compView === "co") {
-        const data = classCOData(), COs = ["CO1", "CO2", "CO3", "CO4", "CO5"], lv = {};
-        const rows = COURSE_OUTCOMES.map(o => { const a = data.filter(s => s[o.co] !== undefined), ok = a.filter(s => s[o.co] >= settings.target), pc = a.length ? Math.round(ok.length / a.length * 100) : 0; lv[o.co] = a.length ? levelOf(pc) : null; return [o.co, esc(o.text), experiments.filter(e => e.co === o.co).length, a.length, ok.length, a.length ? pc + "%" : "—", lv[o.co] === null ? "—" : "Level " + lv[o.co]]; });
-        const pos = Array.from({ length: 11 }, (_, i) => "PO" + (i + 1)).map(po => { let n = 0, d = 0; COs.forEach(co => { const w = CO_PO_MATRIX[co][po] || 0; if (w && lv[co] !== null) { n += w * lv[co]; d += w; } }); return [po, d ? (n / d).toFixed(2) : "—"]; });
-        return docWrap("Course Outcome (CO) and PO Attainment Sheet — Direct Assessment", `<p class="text-xs mb-2">Rule: student attains a CO at ≥ <b>${settings.target}%</b>; class Level 3 / 2 / 1 at ≥ <b>${settings.l3}% / ${settings.l2}% / ${settings.l1}%</b> of students (best score per CO). Students assessed: <b>${st.length}</b>.</p>${tbl(["CO", "Outcome", "Practicals", "Students assessed", "Students attained", "% attained", "Class level"], rows)}<h3 class="text-sm font-extrabold mt-5 mb-2">PO attainment (weighted by the CO–PO matrix, scale 0–3)</h3>${tbl(pos.map(p => p[0]), [pos.map(p => p[1])])}`);
+        const A = computeAttainment(), f2 = v => v == null ? "—" : (Math.round(v * 100) / 100);
+        const rows = COURSE_OUTCOMES.map(o => { const k = A.co[o.co]; return [o.co, esc(o.text), experiments.filter(e => e.co === o.co).length, k.n, k.att, k.pct == null ? "—" : k.pct + "%", f2(k.dL), k.iN + " resp. / " + (k.iPct == null ? "—" : k.iPct + "% agree"), f2(k.iL), "<b>" + f2(k.final) + "</b>"]; });
+        const pos = Array.from({ length: 11 }, (_, i) => "PO" + (i + 1));
+        return docWrap("Course Outcome (CO) and PO Attainment Sheet", `<p class="text-xs mb-2"><b>Direct</b>: student attains a CO at ≥ ${settings.target}% (practical marks weight ${settings.wMarks} + quiz weight ${settings.wQuiz}); class Level 3/2/1 at ≥ ${settings.l3}/${settings.l2}/${settings.l1}% of students. <b>Indirect</b>: course-exit survey, % agreeing (rating ≥ 4), same level rule. <b>Final CO</b> = ${settings.wD}% direct + ${settings.wI}% indirect (direct only until survey data exists). Scale 0–3. Students assessed: <b>${A.students}</b>.</p>${tbl(["CO", "Outcome", "Practicals", "Students", "Attained", "% attained", "Direct level", "Indirect", "Indirect level", "Final CO"], rows)}<h3 class="text-sm font-extrabold mt-5 mb-2">PO attainment (final CO levels weighted by the CO–PO matrix, 0–3)</h3>${tbl(pos, [pos.map(p => f2(A.po[p]))])}<p class="text-[11px] text-slate-500 mt-2">This is the contribution of this course. Programme-level PO attainment must combine all courses and the programme surveys.</p>`);
       }
       if (compView === "register") {
         const head = ["Roll", "Name", ...experiments.map(e => e.number), "Done", "Avg %"];
@@ -3017,11 +3049,11 @@
         return docWrap("Inspection Readiness Checklist (PCI / NBA / NAAC)", `<p class="text-xs mb-2">Readiness: <b>${done} of ${items.length}</b> items (${Math.round(done / items.length * 100)}%). Edit items to match the current inspection format.</p>${tbl(["✓", "Item", "Remarks / evidence"], rows)}<div class="no-print flex gap-2 mt-3"><input id="newCheck" class="flex-1 text-xs border border-slate-300 rounded-xl p-2" placeholder="Add your own checklist item"><button onclick="addCheckItem()" class="px-3 py-2 rounded-xl bg-slate-800 text-white text-xs font-bold">Add</button></div>`);
       }
       const rows = getAYList().map(a => { let r = []; try { r = JSON.parse(localStorage.getItem(recKey(a))) || []; } catch (e) {} const rl = new Set(r.map(x => x.studentRoll.toLowerCase())); const q = r.filter(x => x.questionBreakdown && x.questionBreakdown.length); return [a + (a === settings.ay ? " (current)" : ""), rl.size, r.length, q.length ? Math.round(q.reduce((s, x) => s + x.pct, 0) / q.length) + "%" : "—"]; });
-      return `<div class="bg-white rounded-2xl border border-slate-200 p-5 space-y-4"><h3 class="text-base font-extrabold">🗄️ Academic-Year Archive & Backup</h3>${tbl(["Academic year", "Students", "Records", "Avg score"], rows)}<div class="flex flex-wrap gap-2"><button onclick="exportBackup()" class="px-4 py-2 rounded-xl bg-blue-900 text-white text-xs font-bold">📦 Export Full Backup (all years, JSON)</button><label class="px-4 py-2 rounded-xl bg-slate-100 border border-slate-300 text-xs font-bold cursor-pointer">📂 Restore Backup<input type="file" accept=".json" class="hidden" onchange="importBackup(this)"></label></div><p class="text-xs text-slate-600 leading-relaxed"><b>Important:</b> this portal has no server — records live in this browser on this computer. Export a backup after every batch and at year-end, and keep it with the course file (college Drive / HOD). Use the academic-year selector at the top to start a new year; earlier years stay archived and read-only in practice.</p></div>`;
+      return `<div class="bg-white rounded-2xl border border-slate-200 p-5 space-y-4"><h3 class="text-base font-extrabold">🗄️ Academic-Year Archive & Backup</h3>${tbl(["Academic year", "Students", "Records", "Avg score"], rows)}<div class="flex flex-wrap gap-2"><button onclick="exportBackup()" class="px-4 py-2 rounded-xl bg-blue-900 text-white text-xs font-bold">📦 Export Full Backup (all years, JSON)</button><label class="px-4 py-2 rounded-xl bg-emerald-700 text-white text-xs font-bold cursor-pointer">📥 Import Student Files<input type="file" accept=".json" multiple class="hidden" onchange="importStudentFiles(this)"></label><label class="px-4 py-2 rounded-xl bg-slate-100 border border-slate-300 text-xs font-bold cursor-pointer">📂 Restore Backup<input type="file" accept=".json" class="hidden" onchange="importBackup(this)"></label></div><p class="text-xs text-slate-600 leading-relaxed"><b>Important:</b> this portal has no server — records live in this browser on this computer. Export a backup after every batch and at year-end, and keep it with the course file (college Drive / HOD). Use the academic-year selector at the top to start a new year; earlier years stay archived and read-only in practice.</p></div>`;
     }
     function saveSettingsForm() {
       ["college", "dept", "programme", "yearSem", "course", "courseCode", "faculty", "hod", "principal"].forEach(k => { settings[k] = qid("set_" + k).value.trim(); });
-      ["target", "l3", "l2", "l1"].forEach(k => { const v = parseFloat(qid("set_" + k).value); if (!isNaN(v)) settings[k] = v; });
+      ["target", "l3", "l2", "l1", "wMarks", "wQuiz", "wD", "wI", "pMax", "rMax", "vMax"].forEach(k => { const v = parseFloat(qid("set_" + k).value); if (!isNaN(v)) settings[k] = v; });
       saveSettings(); showToast("Settings saved — they appear on all generated documents.", "✅"); renderCompliance();
     }
     const upd = fn => { const c = loadComp(); fn(c); saveComp(c); };
@@ -3054,6 +3086,296 @@
     }
     window.addEventListener("DOMContentLoaded", renderAYPicker);
 
+    // =========================================================================
+    // 12. MARKS, SURVEY, ATTAINMENT ENGINE, STUDENT FILE EXCHANGE
+    // =========================================================================
+    const marksKey = ay => "agcop_marks_ay_" + ay, surveyKey = ay => "agcop_survey_ay_" + ay;
+    const ldJ = (k, d) => { try { return JSON.parse(localStorage.getItem(k)) || d; } catch (e) { return d; } };
+    const loadMarks = () => ldJ(marksKey(settings.ay), { roster: {}, marks: {} });
+    const saveMarks = m => localStorage.setItem(marksKey(settings.ay), JSON.stringify(m));
+    const loadSurveys = (ay) => ldJ(surveyKey(ay || settings.ay), {});
+    const CO_LIST = ["CO1", "CO2", "CO3", "CO4", "CO5"];
+
+    // ---- attainment engine: direct (marks + quiz), indirect (exit survey), final ----
+    function computeAttainment() {
+      const mk = loadMarks(), sv = loadSurveys(), S = {};
+      const mx = (+settings.pMax || 0) + (+settings.rMax || 0) + (+settings.vMax || 0) || 1;
+      savedRecords.forEach(r => {
+        const k = r.studentRoll.toLowerCase(); S[k] = S[k] || { name: r.studentName, quiz: {}, mk: {} };
+        if (r.questionBreakdown && r.questionBreakdown.length && (S[k].quiz[r.co] === undefined || r.pct > S[k].quiz[r.co])) S[k].quiz[r.co] = r.pct;
+      });
+      Object.entries(mk.marks).forEach(([k, per]) => {
+        S[k] = S[k] || { name: (mk.roster[k] || {}).name || k, quiz: {}, mk: {} };
+        Object.entries(per).forEach(([expId, v]) => {
+          const e = experiments.find(x => x.id === expId); if (!e) return;
+          (S[k].mk[e.co] = S[k].mk[e.co] || []).push(((+v.p || 0) + (+v.r || 0) + (+v.v || 0)) / mx * 100);
+        });
+      });
+      const scoreOf = (s, co) => {
+        const q = s.quiz[co], m = s.mk[co] ? s.mk[co].reduce((a, b) => a + b, 0) / s.mk[co].length : undefined;
+        if (q !== undefined && m !== undefined) return (settings.wMarks * m + settings.wQuiz * q) / ((settings.wMarks + settings.wQuiz) || 1);
+        return m !== undefined ? m : q;
+      };
+      const co = {};
+      CO_LIST.forEach(c => {
+        const sc = Object.values(S).map(s => scoreOf(s, c)).filter(v => v !== undefined);
+        const att = sc.filter(v => v >= settings.target).length, pct = sc.length ? Math.round(att / sc.length * 100) : null;
+        const dL = pct === null ? null : levelOf(pct);
+        const rt = Object.values(sv).map(x => x.ratings && x.ratings[c]).filter(Boolean), ag = rt.filter(x => x >= 4).length;
+        const iPct = rt.length ? Math.round(ag / rt.length * 100) : null, iL = iPct === null ? null : levelOf(iPct);
+        const fin = dL === null ? null : iL === null ? dL : (settings.wD * dL + settings.wI * iL) / ((settings.wD + settings.wI) || 1);
+        co[c] = { n: sc.length, att, pct, dL, iN: rt.length, iPct, iL, final: fin, iAvg: rt.length ? rt.reduce((a, b) => a + b, 0) / rt.length : null };
+      });
+      const po = {};
+      for (let i = 1; i <= 11; i++) {
+        const p = "PO" + i; let n = 0, d = 0;
+        CO_LIST.forEach(c => { const w = CO_PO_MATRIX[c][p] || 0; if (w && co[c].final !== null) { n += w * co[c].final; d += w; } });
+        po[p] = d ? n / d : null;
+      }
+      const avgs = Object.values(S).map(s => { const v = CO_LIST.map(c => scoreOf(s, c)).filter(x => x !== undefined); return v.length ? v.reduce((a, b) => a + b, 0) / v.length : null; }).filter(x => x !== null);
+      return { S, scoreOf, co, po, avgs, students: Object.keys(S).length, surveys: Object.keys(sv).length };
+    }
+
+    // ---- course-exit survey (indirect assessment) ----
+    function renderSurvey() {
+      const el = qid("surveyContent"), roll = qid("studentRoll").value.trim().toLowerCase(), prev = loadSurveys()[roll];
+      const opts = v => [5, 4, 3, 2, 1].map(n => `<option value="${n}" ${prev && prev.ratings && prev.ratings.CO1 !== undefined && v === n ? "selected" : ""}>${n} — ${["", "Strongly disagree", "Disagree", "Neutral", "Agree", "Strongly agree"][n]}</option>`).join("");
+      el.innerHTML = `<div class="bg-white rounded-2xl border border-slate-200 shadow-xs p-6 max-w-3xl mx-auto"><h3 class="text-lg font-extrabold">📋 Course Exit Survey — Academic Year ${esc(settings.ay)}</h3><p class="text-xs text-slate-600 mt-1 mb-4">Fill this once at the end of the course. It is the indirect assessment of course outcomes. Enter your name and roll number in the Assessment tab first.</p>
+        ${prev ? `<p class="text-xs font-bold text-emerald-700 mb-3">✅ You already submitted this survey on ${esc(prev.date)}. You may update it.</p>` : ""}
+        <div class="space-y-3">${COURSE_OUTCOMES.map(o => `<div class="border border-slate-200 rounded-xl p-3"><div class="text-xs font-bold text-blue-900">${o.co}</div><div class="text-xs text-slate-700 mb-2">I am now able to: ${esc(o.text)}</div><select id="sv_${o.co}" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl bg-white"><option value="">— rate —</option>${[5, 4, 3, 2, 1].map(n => `<option value="${n}" ${prev && prev.ratings && prev.ratings[o.co] === n ? "selected" : ""}>${n} — ${["", "Strongly disagree", "Disagree", "Neutral", "Agree", "Strongly agree"][n]}</option>`).join("")}</select></div>`).join("")}</div>
+        <label class="block text-xs font-semibold mt-4 mb-1">Comments / suggestions (optional)</label><textarea id="sv_comment" rows="3" class="w-full text-xs border border-slate-300 rounded-xl p-2">${prev ? esc(prev.comment || "") : ""}</textarea>
+        <button onclick="submitSurvey()" class="mt-4 px-6 py-2.5 rounded-xl bg-blue-900 hover:bg-blue-800 text-white text-xs font-bold">Submit Survey</button><p id="svDone" class="hidden mt-3 p-3 rounded-xl bg-emerald-50 border-2 border-emerald-400 text-sm font-bold text-emerald-800">✅ Survey submitted. Thank you.</p></div>`;
+    }
+    function submitSurvey() {
+      const name = qid("studentName").value.trim(), roll = qid("studentRoll").value.trim().toLowerCase();
+      if (!name || !roll) { showToast("Enter Name and Roll Number in the Assessment tab first!", "⚠️"); switchTab("assessment"); return; }
+      const ratings = {}; for (const c of CO_LIST) { const v = parseInt(qid("sv_" + c).value, 10); if (!v) { showToast(`Please rate ${c}.`, "⚠️"); return; } ratings[c] = v; }
+      const sv = loadSurveys(); sv[roll] = { name, batch: qid("studentBatch").value, ratings, comment: qid("sv_comment").value.trim(), date: new Date().toISOString().split("T")[0] };
+      localStorage.setItem(surveyKey(settings.ay), JSON.stringify(sv)); qid("svDone").classList.remove("hidden"); showToast("Course exit survey submitted.", "✅");
+    }
+
+    // ---- faculty marks entry ----
+    function addRoster() {
+      const mk = loadMarks(); let n = 0;
+      qid("rosterText").value.split("\n").forEach(l => {
+        const p = l.split(",").map(x => x.trim()); if (p.length < 2 || !p[0]) return;
+        const b = /^[A-Ea-e]$/.test(p[2] || "") ? `F.Y. B.Pharm — Batch ${p[2].toUpperCase()}` : (p[2] || "F.Y. B.Pharm");
+        mk.roster[p[0].toLowerCase()] = { name: p[1], batch: b }; n++;
+      });
+      saveMarks(mk); showToast(`${n} student(s) added to the roster.`, "✅"); renderCompliance();
+    }
+    function setMark(roll, expId, key, val) {
+      const mk = loadMarks(), max = { p: +settings.pMax, r: +settings.rMax, v: +settings.vMax }[key];
+      let v = parseFloat(val); if (isNaN(v)) v = undefined; else v = Math.max(0, Math.min(v, max));
+      mk.marks[roll] = mk.marks[roll] || {}; mk.marks[roll][expId] = Object.assign({}, mk.marks[roll][expId]);
+      if (v === undefined) delete mk.marks[roll][expId][key]; else mk.marks[roll][expId][key] = v;
+      if (!Object.keys(mk.marks[roll][expId]).length) delete mk.marks[roll][expId];
+      saveMarks(mk); renderCompliance();
+    }
+
+    // ---- student file exchange (no server) ----
+    function exportMyRecords() {
+      const roll = qid("studentRoll").value.trim().toLowerCase(); if (!roll) { showToast("Enter your roll number first.", "⚠️"); return; }
+      const recs = savedRecords.filter(r => r.studentRoll.toLowerCase() === roll);
+      if (!recs.length) { showToast("No records to export yet.", "⚠️"); return; }
+      const data = { app: "AGCOP-GP-Portal", kind: "student-export", ay: settings.ay, student: { roll, name: qid("studentName").value.trim(), batch: qid("studentBatch").value }, records: recs, survey: loadSurveys()[roll] || null };
+      const l = document.createElement("a"); l.href = URL.createObjectURL(new Blob([JSON.stringify(data)], { type: "application/json" }));
+      l.download = `GP_Practical_${roll}_${settings.ay}.json`; document.body.appendChild(l); l.click(); l.remove();
+      showToast("File downloaded — submit it to your faculty.", "📤");
+    }
+    function importStudentFiles(inp) {
+      const files = [...inp.files]; if (!files.length) return; let ok = 0, bad = 0, pending = files.length;
+      files.forEach(f => {
+        const rd = new FileReader();
+        rd.onload = () => {
+          try {
+            const d = JSON.parse(rd.result); if (d.app !== "AGCOP-GP-Portal" || d.kind !== "student-export") throw 0;
+            const recs = loadAY(d.ay); d.records.forEach(r => { const i = recs.findIndex(x => x.studentRoll.toLowerCase() === r.studentRoll.toLowerCase() && x.expId === r.expId); if (i >= 0) recs[i] = r; else recs.unshift(r); });
+            localStorage.setItem(recKey(d.ay), JSON.stringify(recs)); if (d.ay === settings.ay) savedRecords = recs;
+            if (d.survey) { const sv = loadSurveys(d.ay); sv[d.student.roll] = d.survey; localStorage.setItem(surveyKey(d.ay), JSON.stringify(sv)); }
+            ok++;
+          } catch (e) { bad++; }
+          if (--pending === 0) { showToast(`Imported ${ok} student file(s)${bad ? `, ${bad} invalid` : ""}.`, bad ? "⚠️" : "📥"); renderSavedLedger(); renderCompliance(); }
+        };
+        rd.readAsText(f);
+      });
+    }
+
+    // ---- faculty-only compliance views ----
+    function compExtra(view, C, st) {
+      if (view === "marks") {
+        const mk = loadMarks(), eid = window.__mkExp || experiments[0].id, e = experiments.find(x => x.id === eid) || experiments[0];
+        const A = st.map(u => { const v = (mk.marks[u.roll] || {})[e.id] || {}, rec = savedRecords.find(r => r.studentRoll.toLowerCase() === u.roll && r.expId === e.id);
+          const inp = k => `<input type="number" step="0.5" min="0" max="${settings[k + "Max"]}" value="${v[k] === undefined ? "" : v[k]}" onchange="setMark('${esc(u.roll)}','${e.id}','${k}',this.value)" class="w-16 text-xs border border-slate-300 rounded p-1">`;
+          const tot = (+v.p || 0) + (+v.r || 0) + (+v.v || 0), mx = +settings.pMax + +settings.rMax + +settings.vMax;
+          return [esc(u.roll), esc(u.name), inp("p"), inp("r"), inp("v"), Object.keys(v).length ? Math.round(tot / mx * 100) + "%" : "—", rec && rec.questionBreakdown && rec.questionBreakdown.length ? rec.pct + "%" : "—"]; });
+        return `<div class="bg-white rounded-2xl border border-slate-200 p-5 space-y-4"><h3 class="text-base font-extrabold">🧪 Practical Marks (faculty entry) — AY ${esc(settings.ay)}</h3>
+          <p class="text-xs text-slate-600">Direct CO attainment uses these marks (weight ${settings.wMarks}) with the quiz score (weight ${settings.wQuiz}). Add your class roster first, then choose a practical and enter marks.</p>
+          <details class="border border-slate-200 rounded-xl p-3"><summary class="text-xs font-bold cursor-pointer">➕ Add students to roster (one per line: roll, name, batch letter A–E)</summary><textarea id="rosterText" rows="5" class="w-full text-xs border border-slate-300 rounded-xl p-2 mt-2" placeholder="101, Asha Patil, A&#10;102, Bala Shinde, A"></textarea><button onclick="addRoster()" class="mt-2 px-4 py-2 rounded-xl bg-slate-800 text-white text-xs font-bold">Add to roster</button></details>
+          <div class="flex flex-wrap items-center gap-2"><label class="text-xs font-bold">Practical:</label><select onchange="window.__mkExp=this.value;renderCompliance()" class="px-3 py-2 text-xs border border-slate-300 rounded-xl bg-white">${experiments.map(x => `<option value="${x.id}" ${x.id === e.id ? "selected" : ""}>${x.number} — ${esc(x.title)} (${x.co})</option>`).join("")}</select></div>
+          ${A.length ? tbl(["Roll", "Name", `Performance /${settings.pMax}`, `Record /${settings.rMax}`, `Viva /${settings.vMax}`, "Marks %", "Quiz %"], A) : '<p class="text-xs text-slate-500">No students yet. Add a roster or import student files (Archive &amp; Backup).</p>'}</div>`;
+      }
+      if (view === "map") {
+        const heat = w => w === 3 ? "bg-blue-800 text-white" : w === 2 ? "bg-blue-400 text-white" : w === 1 ? "bg-sky-100" : "text-slate-300";
+        const pos = Array.from({ length: 11 }, (_, i) => "PO" + (i + 1));
+        const m = `<div class="overflow-x-auto"><table class="w-full text-xs text-center border-collapse"><thead><tr class="bg-slate-100"><th class="p-2 border">CO</th>${pos.map(p => `<th class="p-2 border">${p}</th>`).join("")}</tr></thead><tbody>${CO_LIST.map(c => `<tr><td class="p-2 border font-bold">${c}</td>${pos.map(p => { const w = CO_PO_MATRIX[c][p] || 0; return `<td class="p-2 border ${heat(w)}">${w || "-"}</td>`; }).join("")}</tr>`).join("")}</tbody></table></div><p class="text-[11px] mt-1">3 = substantial, 2 = moderate, 1 = slight, - = no mapping.</p>`;
+        const j = COURSE_OUTCOMES.map(o => `<div class="mb-3"><div class="text-xs font-bold">${o.co} — ${esc(o.text)}</div><div class="text-[11px] text-slate-500">Bloom's / psychomotor level: ${esc(BLOOM[o.co] || "—")}</div><textarea onchange="saveJust('${o.co}',this.value)" rows="2" class="no-print w-full text-xs border border-slate-300 rounded-xl p-2 mt-1" placeholder="Justify why this CO is mapped to the POs above (e.g. PO1 pharmacy knowledge: ...)">${esc((C.just || {})[o.co] || "")}</textarea><div class="hidden print:block text-xs">${esc((C.just || {})[o.co] || "")}</div></div>`).join("");
+        return docWrap("CO–PO Articulation Matrix with Justification", m + '<h3 class="text-sm font-extrabold mt-4 mb-2">Mapping justification</h3>' + j);
+      }
+      if (view === "pdf") {
+        const b = (t, fn, c) => `<button onclick="${fn}" class="px-4 py-3 rounded-xl ${c} text-white text-xs font-bold text-left">${t}</button>`;
+        return `<div class="bg-white rounded-2xl border border-slate-200 p-5 space-y-4"><h3 class="text-base font-extrabold">📄 PDF Reports with Graphs — AY ${esc(settings.ay)}</h3><p class="text-xs text-slate-600">PDFs are created on your computer (no upload). They need an internet connection to load the PDF library once per page load.</p>
+          <div class="grid sm:grid-cols-2 gap-3">${b("📊 Assessment Report<br><span class='font-normal'>scores, distribution, completion</span>", "pdfClassReport(['assess'])", "bg-blue-900")}${b("🎯 CO–PO Attainment Report<br><span class='font-normal'>direct / indirect / final, PO chart, heat-map</span>", "pdfClassReport(['copo'])", "bg-emerald-700")}${b("💬 Feedback Report<br><span class='font-normal'>ratings, exit survey, suggestions</span>", "pdfClassReport(['feedback'])", "bg-amber-700")}${b("📚 Combined Report (all three)", "pdfClassReport(['assess','copo','feedback'])", "bg-red-700")}</div>
+          <div class="border-t pt-3"><label class="text-xs font-bold">Individual student PDF:</label> <select id="pdfStu" class="px-3 py-2 text-xs border border-slate-300 rounded-xl bg-white ml-2">${st.map(u => `<option value="${esc(u.roll)}">${esc(u.roll)} — ${esc(u.name)}</option>`).join("")}</select> <button onclick="pdfStudentReport(qid('pdfStu').value)" class="ml-2 px-4 py-2 rounded-xl bg-slate-800 text-white text-xs font-bold">Download</button></div></div>`;
+      }
+      return null;
+    }
+    function saveJust(co, v) { upd(c => { c.just = c.just || {}; c.just[co] = v; }); }
+    // =========================================================================
+    // 13. PDF REPORT ENGINE (jsPDF, vector charts)
+    // =========================================================================
+    const PX = { M: 14, W: 210, B: 280 };
+    const pdfSafe = t => String(t == null ? "" : t).replace(/≥/g, ">=").replace(/≤/g, "<=").replace(/[→]/g, "->").replace(/[✓✅]/g, "Yes").replace(/✗/g, "No").replace(/[₀-₉]/g, c => String(c.charCodeAt(0) - 0x2080)).replace(/[\u2018\u2019]/g, "'").replace(/[\u201C\u201D]/g, '"').replace(/[\u2013\u2014]/g, "-").replace(/\u2022/g, "*").replace(/[^\x20-\x7E\xA0-\xFF]/g, " ").replace(/\s+/g, " ").trim();
+    function pdfSave(doc, name) { doc.save(name); }
+    function pdfNew(title, sub) {
+      const doc = new window.jspdf.jsPDF({ unit: "mm", format: "a4" });
+      doc.setFillColor(23, 37, 84); doc.rect(0, 0, 210, 24, "F"); doc.setTextColor(255);
+      doc.setFont("helvetica", "bold"); doc.setFontSize(9); doc.text(pdfSafe(settings.college).toUpperCase(), PX.M, 9);
+      doc.setFontSize(14); doc.text(pdfSafe(title), PX.M, 18);
+      doc.setFont("helvetica", "normal"); doc.setFontSize(8); doc.setTextColor(70);
+      doc.text(pdfSafe(`${settings.dept} | ${settings.programme} ${settings.yearSem} | ${settings.course} | Academic Year ${settings.ay}`), PX.M, 30, { maxWidth: 182 });
+      if (sub) doc.text(pdfSafe(sub), PX.M, 35, { maxWidth: 182 });
+      doc.setTextColor(0); doc.__y = 41; return doc;
+    }
+    const pdfNeed = (doc, h) => { if (doc.__y + h > PX.B) { doc.addPage(); doc.__y = 16; } };
+    function pdfH(doc, t) { pdfNeed(doc, 16); doc.setFont("helvetica", "bold"); doc.setFontSize(11); doc.setTextColor(23, 37, 84); doc.text(pdfSafe(t), PX.M, doc.__y + 4); doc.setDrawColor(190); doc.line(PX.M, doc.__y + 6, PX.W - PX.M, doc.__y + 6); doc.setTextColor(0); doc.setFont("helvetica", "normal"); doc.__y += 10; }
+    function pdfP(doc, t, size = 8.5) { doc.setFontSize(size); doc.setFont("helvetica", "normal"); doc.splitTextToSize(pdfSafe(t), PX.W - 2 * PX.M).forEach(l => { pdfNeed(doc, 5); doc.text(l, PX.M, doc.__y + 3.5); doc.__y += 4.3; }); doc.__y += 1.5; }
+    function pdfKPIs(doc, items) {
+      pdfNeed(doc, 20); const n = items.length, w = (PX.W - 2 * PX.M - (n - 1) * 3) / n;
+      items.forEach((k, i) => { const x = PX.M + i * (w + 3); doc.setFillColor(241, 245, 249); doc.roundedRect(x, doc.__y, w, 16, 2, 2, "F"); doc.setFont("helvetica", "bold"); doc.setFontSize(13); doc.setTextColor(23, 37, 84); doc.text(pdfSafe(k[1]), x + w / 2, doc.__y + 8, { align: "center" }); doc.setFont("helvetica", "normal"); doc.setFontSize(7); doc.setTextColor(90); doc.text(pdfSafe(k[0]), x + w / 2, doc.__y + 13, { align: "center" }); });
+      doc.setTextColor(0); doc.__y += 20;
+    }
+    function pdfTable(doc, head, rows, widths, fs = 7.5) {
+      const tw = PX.W - 2 * PX.M, sum = widths.reduce((a, b) => a + b, 0), cw = widths.map(w => w / sum * tw);
+      const row = (cells, bold, fill) => {
+        doc.setFontSize(fs); doc.setFont("helvetica", bold ? "bold" : "normal");
+        const lines = cells.map((c, i) => doc.splitTextToSize(pdfSafe(c), cw[i] - 2)), h = Math.max(...lines.map(l => l.length)) * fs * 0.4 + 2.8;
+        pdfNeed(doc, h); if (fill) { doc.setFillColor(...fill); doc.rect(PX.M, doc.__y, tw, h, "F"); }
+        let x = PX.M; lines.forEach((l, i) => { doc.text(l, x + 1, doc.__y + fs * 0.38 + 1); x += cw[i]; });
+        doc.setDrawColor(215); doc.line(PX.M, doc.__y + h, PX.M + tw, doc.__y + h); doc.__y += h;
+      };
+      row(head, true, [226, 232, 240]); rows.forEach(r => row(r, false)); doc.__y += 3;
+    }
+    function pdfBars(doc, o) {
+      const h = o.h || 58, w = PX.W - 2 * PX.M; pdfNeed(doc, h + 4);
+      doc.setFont("helvetica", "bold"); doc.setFontSize(9); doc.setTextColor(0); doc.text(pdfSafe(o.title), PX.M, doc.__y + 3);
+      const top = doc.__y + 7, ph = h - 20, left = PX.M + 9, pw = w - 10, base = top + ph, max = o.max, ticks = o.ticks || 4;
+      doc.setFont("helvetica", "normal"); doc.setFontSize(6.5); doc.setDrawColor(228); doc.setTextColor(110);
+      for (let i = 0; i <= ticks; i++) { const y = base - ph * i / ticks; doc.line(left, y, left + pw, y); doc.text(String(Math.round(max * i / ticks * 10) / 10), left - 1.5, y + 1, { align: "right" }); }
+      const n = o.cats.length, gw = pw / n, sn = o.series.length, bw = Math.min(gw * 0.8 / sn, 11);
+      o.cats.forEach((c, i) => {
+        const gx = left + i * gw + gw / 2 - bw * sn / 2;
+        o.series.forEach((s, j) => { const v = s.values[i]; if (v == null) return; const bh = Math.max(0, Math.min(v, max)) / max * ph; doc.setFillColor(...s.color); doc.rect(gx + j * bw, base - bh, bw * 0.92, bh, "F"); if (n <= 14) { doc.setFontSize(6); doc.setTextColor(40); doc.text(String(Math.round(v * 10) / 10), gx + j * bw + bw * 0.46, base - bh - 1, { align: "center" }); } });
+        doc.setFontSize(n > 14 ? 5.5 : 6.5); doc.setTextColor(60); doc.text(pdfSafe(c), left + i * gw + gw / 2, base + 3.5, { align: "center", maxWidth: gw });
+      });
+      if (o.line) { const y = base - o.line.v / max * ph; doc.setDrawColor(220, 38, 38); doc.setLineDashPattern([1.5, 1.5], 0); doc.line(left, y, left + pw, y); doc.setLineDashPattern([], 0); doc.setTextColor(220, 38, 38); doc.setFontSize(6.5); doc.text(pdfSafe(o.line.label), left + pw, y - 1, { align: "right" }); }
+      let lx = left; doc.setFontSize(6.5); doc.setTextColor(60); o.series.forEach(s => { if (!s.name) return; doc.setFillColor(...s.color); doc.rect(lx, base + 7, 3, 3, "F"); doc.text(pdfSafe(s.name), lx + 4.5, base + 9.5); lx += doc.getTextWidth(pdfSafe(s.name)) + 10; });
+      doc.setTextColor(0); doc.setDrawColor(0); doc.__y += h;
+    }
+    function pdfHeat(doc) {
+      const pos = Array.from({ length: 11 }, (_, i) => "PO" + (i + 1)), lw = 14, cw = (PX.W - 2 * PX.M - lw) / 11, rh = 7; pdfNeed(doc, rh * 6 + 12);
+      doc.setFont("helvetica", "bold"); doc.setFontSize(9); doc.text("CO-PO articulation heat-map (3 = substantial, 2 = moderate, 1 = slight)", PX.M, doc.__y + 3); doc.__y += 6;
+      doc.setFontSize(7); pos.forEach((p, i) => doc.text(p, PX.M + lw + i * cw + cw / 2, doc.__y + 4, { align: "center" })); doc.__y += 6;
+      CO_LIST.forEach(c => { doc.setFont("helvetica", "bold"); doc.setTextColor(0); doc.text(c, PX.M + 1, doc.__y + 5); pos.forEach((p, i) => { const w = CO_PO_MATRIX[c][p] || 0, col = w === 3 ? [30, 64, 175] : w === 2 ? [96, 165, 250] : w === 1 ? [186, 230, 253] : [241, 245, 249]; doc.setFillColor(...col); doc.rect(PX.M + lw + i * cw, doc.__y, cw - 0.6, rh - 0.6, "F"); doc.setTextColor(w >= 2 ? 255 : 60); doc.setFont("helvetica", "normal"); doc.text(w ? String(w) : "-", PX.M + lw + i * cw + cw / 2, doc.__y + 4.5, { align: "center" }); }); doc.__y += rh; });
+      doc.setTextColor(0); doc.__y += 4;
+    }
+    function pdfFinish(doc, name) {
+      pdfNeed(doc, 30); doc.__y += 14; const w = (PX.W - 2 * PX.M) / 3;
+      [["Course Faculty", settings.faculty], ["Head of Department", settings.hod], ["Principal", settings.principal]].forEach(([r, n], i) => { const x = PX.M + i * w; doc.setDrawColor(90); doc.line(x + 4, doc.__y, x + w - 4, doc.__y); doc.setFont("helvetica", "bold"); doc.setFontSize(8); doc.text(r, x + w / 2, doc.__y + 4, { align: "center" }); doc.setFont("helvetica", "normal"); doc.text(pdfSafe(n), x + w / 2, doc.__y + 8, { align: "center" }); });
+      const N = doc.getNumberOfPages();
+      for (let i = 1; i <= N; i++) { doc.setPage(i); doc.setFontSize(7); doc.setTextColor(130); doc.text(`Generated ${new Date().toLocaleDateString("en-IN")} from the Practical Portal. Verify against current PCI / NBA / NAAC formats.`, PX.M, 291); doc.text(`Page ${i} of ${N}`, PX.W - PX.M, 291, { align: "right" }); }
+      pdfSave(doc, name);
+    }
+    const BL = [30, 64, 175], GR = [5, 150, 105], AM = [217, 119, 6], RD = [220, 38, 38], SL = [100, 116, 139];
+    const pdfReady = () => { if (!window.jspdf) { showToast("PDF library not loaded. Check your internet connection and reload.", "⚠️"); return false; } return true; };
+    function secAssess(doc, A) {
+      const st = studentsInAY(), N = experiments.length, quiz = savedRecords.filter(r => r.questionBreakdown && r.questionBreakdown.length);
+      const sums = st.map(u => studentSummary(u.roll)), done = sums.reduce((a, s) => a + s.done, 0), avgQ = quiz.length ? Math.round(quiz.reduce((a, r) => a + r.pct, 0) / quiz.length) : 0;
+      pdfH(doc, "1. Assessment Summary");
+      pdfKPIs(doc, [["Students", String(st.length)], ["Quiz attempts", String(quiz.length)], ["Average quiz score", avgQ + "%"], ["Practicals completed", st.length ? Math.round(done / (st.length * N) * 100) + "%" : "0%"]]);
+      pdfBars(doc, { title: "Average quiz score (%) per practical", cats: experiments.map(e => e.number), series: [{ name: "Average quiz %", values: experiments.map(e => { const r = quiz.filter(x => x.expId === e.id); return r.length ? Math.round(r.reduce((a, x) => a + x.pct, 0) / r.length) : null; }), color: BL }], max: 100, line: { v: settings.target, label: `target ${settings.target}%` } });
+      const bins = ["<40", "40-49", "50-59", "60-69", "70-79", "80-89", "90-100"], cnt = bins.map(() => 0);
+      A.avgs.forEach(v => { cnt[v < 40 ? 0 : v >= 90 ? 6 : Math.floor(v / 10) - 3]++; });
+      const mx = Math.max(4, ...cnt);
+      pdfBars(doc, { title: "Distribution of students by overall CO score (%) - number of students", cats: bins, series: [{ name: "Students", values: cnt, color: GR }], max: mx, ticks: Math.min(mx, 5), h: 52 });
+      pdfTable(doc, ["Roll", "Name", "Batch", "Completed", "Avg quiz %", "Overall CO score %"], st.map((u, i) => { const s = sums[i], a = A.S[u.roll], v = a ? CO_LIST.map(c => A.scoreOf(a, c)).filter(x => x !== undefined) : []; return [u.roll, u.name, (u.batch || "").replace("F.Y. B.Pharm — ", ""), `${s.done}/${s.total}`, s.avg + "%", v.length ? Math.round(v.reduce((x, y) => x + y, 0) / v.length) + "%" : "-"]; }), [10, 30, 14, 12, 12, 16]);
+    }
+    function secCOPO(doc, A) {
+      pdfH(doc, "2. CO-PO Attainment");
+      pdfP(doc, `Method: a student attains a CO at >= ${settings.target}% (direct = practical marks weight ${settings.wMarks} + quiz weight ${settings.wQuiz}). Class level 3/2/1 when >= ${settings.l3}/${settings.l2}/${settings.l1}% of students attain. Indirect = % of students agreeing (rating >= 4) in the course-exit survey. Final CO = ${settings.wD}% direct + ${settings.wI}% indirect. PO attainment = CO final levels weighted by the CO-PO matrix. Scale 0-3.`, 7.5);
+      pdfBars(doc, { title: "CO attainment level (0-3): direct, indirect and final", cats: CO_LIST, series: [{ name: "Direct", values: CO_LIST.map(c => A.co[c].dL), color: BL }, { name: "Indirect (survey)", values: CO_LIST.map(c => A.co[c].iL), color: AM }, { name: "Final", values: CO_LIST.map(c => A.co[c].final == null ? null : Math.round(A.co[c].final * 100) / 100), color: GR }], max: 3, ticks: 3, line: { v: 2, label: "level 2" } });
+      pdfBars(doc, { title: "% of students attaining each CO (target score " + settings.target + "%)", cats: CO_LIST, series: [{ name: "% students attained", values: CO_LIST.map(c => A.co[c].pct), color: BL }], max: 100, h: 50, line: { v: settings.l3, label: `level 3 at ${settings.l3}%` } });
+      pdfTable(doc, ["CO", "Students", "Attained", "% attained", "Direct level", "Survey n", "% agree", "Indirect level", "Final"], CO_LIST.map(c => { const k = A.co[c]; return [c, k.n, k.att, k.pct == null ? "-" : k.pct + "%", k.dL == null ? "-" : k.dL, k.iN, k.iPct == null ? "-" : k.iPct + "%", k.iL == null ? "-" : k.iL, k.final == null ? "-" : k.final.toFixed(2)]; }), [8, 11, 11, 12, 12, 10, 10, 13, 10]);
+      pdfBars(doc, { title: "PO attainment (0-3)", cats: Array.from({ length: 11 }, (_, i) => "PO" + (i + 1)), series: [{ name: "PO attainment", values: Array.from({ length: 11 }, (_, i) => A.po["PO" + (i + 1)] == null ? null : Math.round(A.po["PO" + (i + 1)] * 100) / 100), color: [124, 58, 237] }], max: 3, ticks: 3, h: 52 });
+      pdfHeat(doc);
+    }
+    function secFeedback(doc) {
+      const fb = savedRecords.filter(r => r.feedback).map(r => ({ r, f: r.feedback })), av = (a, k) => a.length ? a.reduce((s, x) => s + (+x.f[k] || 0), 0) / a.length : null, sv = Object.values(loadSurveys());
+      pdfH(doc, "3. Student Feedback and Course-Exit Survey");
+      pdfKPIs(doc, [["Feedback responses", String(fb.length)], ["Overall satisfaction", fb.length ? av(fb, "avgRating").toFixed(2) + " / 5" : "-"], ["Reflections (" + MIN_REFLECTION_WORDS + "+ words)", String(fb.filter(x => countWords(x.f.kolbLearned) >= MIN_REFLECTION_WORDS).length)], ["Exit surveys", String(sv.length)]]);
+      pdfBars(doc, { title: "Average rating by criterion (1-5)", cats: ["Clarity", "Formulation", "Confidence", "Assessment"], series: [{ name: "Average", values: ["clarity", "formulation", "confidence", "assessment"].map(k => { const v = av(fb, k); return v == null ? null : Math.round(v * 100) / 100; }), color: AM }], max: 5, ticks: 5, h: 50 });
+      pdfBars(doc, { title: "Overall satisfaction per practical (1-5)", cats: experiments.map(e => e.number), series: [{ name: "Avg rating", values: experiments.map(e => { const a = fb.filter(x => x.r.expId === e.id); return a.length ? Math.round(av(a, "avgRating") * 100) / 100 : null; }), color: SL }], max: 5, ticks: 5 });
+      pdfBars(doc, { title: "Course-exit survey: average rating per CO (1-5)", cats: CO_LIST, series: [{ name: "Average rating", values: CO_LIST.map(c => { const r = sv.map(x => x.ratings && x.ratings[c]).filter(Boolean); return r.length ? Math.round(r.reduce((a, b) => a + b, 0) / r.length * 100) / 100 : null; }), color: GR }], max: 5, ticks: 5, h: 50 });
+      const sug = fb.map(x => x.f.kolbSuggestion).filter(t => t && t !== "None").slice(0, 25);
+      pdfH(doc, "Student suggestions"); if (sug.length) sug.forEach(t => pdfP(doc, "- " + t, 8)); else pdfP(doc, "None recorded.");
+      pdfH(doc, "Action taken on feedback"); pdfP(doc, loadComp().action || "(not recorded)");
+    }
+    function pdfClassReport(which) {
+      if (!pdfReady()) return; const A = computeAttainment();
+      if (!A.students) { showToast("No student data in this academic year yet.", "⚠️"); return; }
+      const names = { assess: "Assessment", copo: "CO-PO Attainment", feedback: "Feedback" };
+      const title = which.length > 1 ? "Assessment, CO-PO Attainment and Feedback Report" : names[which[0]] + " Report";
+      const doc = pdfNew(title, `Students: ${A.students} | Exit surveys: ${A.surveys}`);
+      if (which.includes("assess")) secAssess(doc, A); if (which.includes("copo")) secCOPO(doc, A); if (which.includes("feedback")) secFeedback(doc);
+      pdfFinish(doc, `AGCOP_${which.length > 1 ? "Combined" : names[which[0]].replace(/ /g, "")}_Report_${settings.ay}.pdf`);
+    }
+    function pdfStudentReport(roll) {
+      if (!pdfReady()) return; roll = String(roll || "").toLowerCase(); const u = studentsInAY().find(x => x.roll === roll);
+      if (!u) { showToast("Select a student with records first.", "⚠️"); return; }
+      const A = computeAttainment(), sm = studentSummary(roll), me = A.S[roll], N = experiments.length;
+      const doc = pdfNew("Student Practical Report", `${u.name} | Roll ${u.roll} | ${(u.batch || "").replace("F.Y. B.Pharm — ", "")}`);
+      pdfH(doc, "1. Assessment");
+      pdfKPIs(doc, [["Practicals completed", `${sm.done} / ${N}`], ["Average quiz score", sm.avg + "%"], ["Attainment", computeAttainmentLevel(sm.avg).label.split(" (")[0]], ["Status", sm.done === N ? "FINAL" : "Interim"]]);
+      pdfBars(doc, { title: "Quiz score (%) per practical", cats: experiments.map(e => e.number), series: [{ name: "My score %", values: sm.rows.map(r => r.quiz ? r.rec.pct : null), color: BL }], max: 100, line: { v: settings.target, label: `target ${settings.target}%` } });
+      pdfH(doc, "2. CO performance");
+      pdfBars(doc, { title: "My CO-wise score (%)", cats: CO_LIST, series: [{ name: "My score %", values: CO_LIST.map(c => { const v = me ? A.scoreOf(me, c) : undefined; return v === undefined ? null : Math.round(v); }), color: GR }], max: 100, h: 50, line: { v: settings.target, label: `target ${settings.target}%` } });
+      pdfTable(doc, ["No.", "Practical", "CO", "Score", "Status", "Satisfaction"], sm.rows.filter(r => r.quiz).map(r => [r.e.number, r.e.title, r.e.co, `${r.rec.score}/${r.rec.total} (${r.rec.pct}%)`, r.done ? "Completed" : "Reflection pending", r.rec.feedback ? r.rec.feedback.avgRating + "/5" : "-"]), [7, 45, 7, 16, 18, 12]);
+      const fbs = sm.rows.filter(r => r.rec && r.rec.feedback);
+      if (fbs.length) {
+        pdfH(doc, "3. My feedback and reflections");
+        const av = k => fbs.reduce((a, r) => a + (+r.rec.feedback[k] || 0), 0) / fbs.length;
+        pdfBars(doc, { title: "My average ratings (1-5)", cats: ["Clarity", "Formulation", "Confidence", "Assessment"], series: [{ name: "Average", values: ["clarity", "formulation", "confidence", "assessment"].map(k => Math.round(av(k) * 100) / 100), color: AM }], max: 5, ticks: 5, h: 48 });
+        fbs.forEach(r => { pdfP(doc, `${r.e.number} ${r.e.title}: ${r.rec.feedback.kolbLearned.slice(0, 420)}`, 8); });
+      }
+      pdfFinish(doc, `Student_Report_${u.roll}_${settings.ay}.pdf`);
+    }
+    // ---- practical flow helpers: quick switch + stepper ----
+    function renderQuickSelect() {
+      const sel = document.getElementById("quickExp"); if (!sel) return;
+      const g = {}; experiments.forEach(e => (g[e.category] = g[e.category] || []).push(e));
+      sel.innerHTML = Object.entries(g).map(([c, l]) => `<optgroup label="${esc(c)}">${l.map(e => `<option value="${e.id}" ${e.id === activeExpId ? "selected" : ""}>${esc(e.number)} — ${esc(e.title)}</option>`).join("")}</optgroup>`).join("");
+    }
+    function stepPractical(d) {
+      const i = experiments.findIndex(e => e.id === activeExpId);
+      selectExperiment(experiments[(i + d + experiments.length) % experiments.length].id);
+    }
+    function updateStepper() {
+      const el = document.getElementById("stepper"); if (!el) return;
+      const att = getCurrentAttempt(), fb = getCurrentFeedback(), tab = window.__tab || "";
+      const quiz = !!(att && att.questionBreakdown && att.questionBreakdown.length), refl = !!(fb && countWords(fb.kolbLearned) >= MIN_REFLECTION_WORDS);
+      const steps = [["practical", "① Read guide", false], ["assessment", "② Quiz", quiz], ["feedback", "③ Feedback & reflection", refl], ["report", "④ Report", quiz && refl]];
+      el.innerHTML = '<span class="text-[10px] uppercase tracking-wider text-slate-500 mr-1">This practical:</span>' + steps.map(([k, t, done], i) => `${i ? '<span class="text-slate-300">→</span>' : ""}<button onclick="switchTab('${k}')" class="px-3 py-1.5 rounded-full border ${k === tab ? "bg-blue-950 text-white border-blue-950" : done ? "bg-emerald-50 text-emerald-800 border-emerald-300" : "bg-white text-slate-600 border-slate-300 hover:bg-slate-50"}">${done ? "✅ " : ""}${t}</button>`).join("");
+    }
   </script>
 </body>
 </html>
